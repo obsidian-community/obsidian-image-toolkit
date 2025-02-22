@@ -1,4 +1,4 @@
-import {FileCto} from "./commonTo";
+import {FileCto} from "./common.to";
 
 export class GalleryImgCto {
   alt: string;

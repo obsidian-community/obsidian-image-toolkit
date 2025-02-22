@@ -1,9 +1,10 @@
-import {OIT_CLASS, TOOLBAR_CONF} from 'src/conf/constants';
+import {OIT_CLASS} from 'src/conf/constants';
+import { TOOLBAR_CONF } from "src/conf/toolbar.conf";
 import {t} from 'src/lang/helpers';
 import ImageToolkitPlugin from 'src/main';
 import {ContainerView} from './container.view';
 import {GalleryNavbarView} from '../galleryNavbarView';
-import {ImgCto} from "../../model/imgTo";
+import {ImgCto} from "../../model/container.to";
 
 export class NormalContainerView extends ContainerView {
 
@@ -20,23 +21,23 @@ export class NormalContainerView extends ContainerView {
   //region ================== Container View ========================
   public initContainerDom = (parentContainerEl: Element): ImgCto => {
     let imgCto: ImgCto;
-    if (!this.imgInfo.oitContainerEl) {
+    if (!this.imgInfo.modeContainerEl) {
       // init `oit-normal` dom at first time
       // <div class="oit oit-normal"> ... <div>
-      (this.imgInfo.oitContainerEl = createDiv()).addClass(OIT_CLASS.CONTAINER_ROOT, OIT_CLASS.CONTAINER_NORMAL)
-      parentContainerEl.appendChild(this.imgInfo.oitContainerEl);
+      (this.imgInfo.modeContainerEl = createDiv()).addClass(OIT_CLASS.CONTAINER_ROOT, OIT_CLASS.MODE_CONTAINER_NORMAL)
+      parentContainerEl.appendChild(this.imgInfo.modeContainerEl);
 
       // 1. <div class="oit-img-container">...</div>
-      this.imgInfo.oitContainerEl.append(this.imgInfo.imgContainerEl = createDiv(OIT_CLASS.IMG_CONTAINER));
+      this.imgInfo.modeContainerEl.append(this.imgInfo.imgContainerEl = createDiv(OIT_CLASS.IMG_CONTAINER));
       // 1.1. <div class="oit-img-container"> `<img class="oit-img-view" src="" alt="">` </div>
       this.updateImgViewElAndList(this.imgInfo);
 
       // 2. <div class="oit-img-tip"></div>
-      this.imgInfo.oitContainerEl.appendChild(this.imgInfo.imgTipEl = createDiv(OIT_CLASS.IMG_TTP));
+      this.imgInfo.modeContainerEl.appendChild(this.imgInfo.imgTipEl = createDiv(OIT_CLASS.IMG_TTP));
       this.imgInfo.imgTipEl.hidden = true;
 
       // 3. <div class="oit-img-footer"> ... <div>
-      this.imgInfo.oitContainerEl.appendChild(this.imgInfo.imgFooterEl = createDiv(OIT_CLASS.IMG_FOOTER));
+      this.imgInfo.modeContainerEl.appendChild(this.imgInfo.imgFooterEl = createDiv(OIT_CLASS.IMG_FOOTER));
 
       // 3.1. <div class="oit-img-title"></div>
       this.imgInfo.imgFooterEl.appendChild(this.imgInfo.imgTitleEl = createDiv(OIT_CLASS.IMG_TITLE));
@@ -62,7 +63,7 @@ export class NormalContainerView extends ContainerView {
       imgToolbarUlEL.addEventListener('click', this.clickImgToolbar);
 
       // <div class="img-player"> <img class='img-fullscreen' src=''> </div>
-      this.imgInfo.oitContainerEl.appendChild(this.imgInfo.imgPlayerEl = createDiv(OIT_CLASS.IMG_PLAYER)); // img-player for full screen mode
+      this.imgInfo.modeContainerEl.appendChild(this.imgInfo.imgPlayerEl = createDiv(OIT_CLASS.IMG_PLAYER)); // img-player for full screen mode
       this.imgInfo.imgPlayerEl.appendChild(this.imgInfo.imgPlayerImgViewEl = createEl('img'));
       this.imgInfo.imgPlayerImgViewEl.addClass(OIT_CLASS.IMG_FULLSCREEN);
     }
@@ -72,14 +73,14 @@ export class NormalContainerView extends ContainerView {
   }
 
   public openOitContainerView = (matchedImg: ImgCto): void => {
-    if (!this.imgInfo.oitContainerEl) {
+    if (!this.imgInfo.modeContainerEl) {
       console.error('obsidian-image-toolkit: oit-*-container-view has not been initialized!');
       return;
     }
     matchedImg.popup = true;
     this.imgGlobalStatus.popup = true;
     // display 'oit-normal'
-    this.imgInfo.oitContainerEl.style.setProperty('display', 'block');
+    this.imgInfo.modeContainerEl.style.setProperty('display', 'block');
   }
 
   public closeContainerView = (event?: MouseEvent, activeImg?: ImgCto): void => {
@@ -89,8 +90,8 @@ export class NormalContainerView extends ContainerView {
         return;
     }
     if (!activeImg && !(activeImg = this.imgGlobalStatus.activeImg)) return;
-    if (this.imgInfo.oitContainerEl) {
-      this.imgInfo.oitContainerEl.style.setProperty('display', 'none'); // hide 'oit-normal'
+    if (this.imgInfo.modeContainerEl) {
+      this.imgInfo.modeContainerEl.style.setProperty('display', 'none'); // hide 'oit-normal'
       this.renderImgTitle('', '');
       this.renderImgView(activeImg.imgViewEl, '', '');
       // remove events

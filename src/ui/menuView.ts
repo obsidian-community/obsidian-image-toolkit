@@ -1,8 +1,9 @@
-import {SEPARATOR_SYMBOL, TOOLBAR_CONF} from "../conf/constants";
+import {SEPARATOR_SYMBOL} from "../conf/constants";
+import { TOOLBAR_CONF } from "src/conf/toolbar.conf";
 import {Menu} from "obsidian";
 import {t} from "../lang/helpers";
 import {PinContainerView} from "./container/pinContainer.view";
-import {ImgCto} from "../model/imgTo";
+import {ImgCto} from "../model/container.to";
 
 /**
  * Right click menu

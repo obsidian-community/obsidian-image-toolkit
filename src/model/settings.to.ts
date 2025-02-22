@@ -1,10 +1,11 @@
-import {ViewMode} from "../conf/constants";
+import {ViewModeEnum} from "../conf/constants";
 
 /**
  * interface ts object: global settings
  */
 export interface SettingsIto {
-  viewMode: ViewMode;
+  // default view mode
+  viewMode: ViewModeEnum;
 
   viewImageInEditor: boolean;
   // CPB = Community Plugins Browser

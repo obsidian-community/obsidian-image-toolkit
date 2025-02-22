@@ -1,13 +1,13 @@
 /**
- * ts class object: image operating status
+ * ts class object: image operating state
  */
-export class ImgStatusCto {
+export class ImgOprStateCto {
   // true: the popup layer of viewing image is displayed
   popup: boolean = false;
   // whether the image is being dragged
   dragging: boolean = false;
 
-  // keybord pressing status
+  // keyboard pressing status
   arrowUp: boolean = false;
   arrowDown: boolean = false;
   arrowLeft: boolean = false;
@@ -16,18 +16,22 @@ export class ImgStatusCto {
   fullScreen: boolean = false;
 
   // being dragged
-  activeImg: ImgCto;
+  activeImg: ImgCto | null;
   activeImgZIndex: number = 0; /*--layer-status-bar*/
 
+  // Double click event:
   clickCount: number = 0;
-  clickTimer: NodeJS.Timeout;
+  clickTimer: NodeJS.Timeout | null;
 }
 
 /**
  * ts interface object: image information
  */
+/**
+ * @deprecated
+ */
 export interface ImgInfoIto {
-  oitContainerViewEl: HTMLDivElement; // 'oit-normal-container-view', 'oit-pin-container-view'
+  // oitContainerViewEl: HTMLDivElement; // 'oit-normal-container-view', 'oit-pin-container-view'
   imgViewEl: HTMLImageElement;
   imgTitleEl: HTMLDivElement;
   imgTipEl: HTMLDivElement;
@@ -55,10 +59,11 @@ export interface ImgInfoIto {
 }
 
 /**
- * ts class object: image information including all html elements
+ * ts class object: image content including important html elements
  */
-export class ImgInfoCto {
-  oitContainerEl: HTMLDivElement; // 'oit-main', 'oit-pin'
+export class ImageDomManager {
+  modeContainerEl: HTMLDivElement; // 'oit-normal', 'oit-pin': init during constructor of ContainerViewNew
+
   imgContainerEl: HTMLDivElement; // 'oit-img-container': including <img class='oit-img-view' src='' alt=''>
 
   imgTitleEl: HTMLDivElement; // 'oit-img-title'
@@ -66,12 +71,17 @@ export class ImgInfoCto {
   imgTitleIndexEl: HTMLSpanElement; // 'oit-img-title-index'
 
   imgTipEl: HTMLDivElement; // 'oit-img-tip': show the zoom ratio
-  imgTipTimeout?: NodeJS.Timeout; // timer: control the display time of 'oit-img-tip'
+  imgTipTimeout?: NodeJS.Timeout | null; // timer: control the display time of 'oit-img-tip'
+
   imgFooterEl: HTMLElement; // 'oit-img-footer': including 'oit-img-title', 'oit-img-toolbar', 'gallery-navbar'
   imgPlayerEl: HTMLDivElement; // 'img-player': including <img class="img-fullscreen" src='' alt=''>
   imgPlayerImgViewEl: HTMLImageElement; // 'img-fullscreen'
 
   imgList: Array<ImgCto> = new Array<ImgCto>();
+
+  constructor(oitContainerEl: HTMLDivElement) {
+    this.modeContainerEl = oitContainerEl;
+  }
 
   public getPopupImgNum = (): number => {
     let num: number = 0;
@@ -85,12 +95,12 @@ export class ImgInfoCto {
 export class ImgCto {
   index: number;
   mtime: number; // modified time
-  popup: boolean = false;
+  popup: boolean = false; // currently whether it's popped-up
 
   targetOriginalImgEl: HTMLImageElement;
 
   imgViewEl: HTMLImageElement; // 'oit-img-view'
-  refreshImgInterval: NodeJS.Timeout;
+  refreshImgInterval: NodeJS.Timeout | null;
   zIndex: number = 0;
 
   curWidth: number = 0; // image's current width
@@ -118,12 +128,63 @@ export class ImgCto {
     borderColor: ''
   }
 
-  constructor();
-  constructor(index: number, mtime: number, imgViewEl: HTMLImageElement);
-  constructor(index?: number, mtime?: number, imgViewEl?: HTMLImageElement) {
+  constructor(index: number, mtime: number, imgViewEl: HTMLImageElement) {
     this.index = index;
     this.mtime = mtime;
     this.imgViewEl = imgViewEl;
   }
+
+  public resetRefreshImgInterval() {
+    if (this.refreshImgInterval) {
+      clearInterval(this.refreshImgInterval);
+      this.refreshImgInterval = null;
+    }
+  }
+}
+
+export class LastClickedImgCto {
+
+  // the clicked original image element
+  private lastClickedImgEl: HTMLImageElement;
+
+  private defaultStyle = {
+    borderWidth: '',
+    borderStyle: '',
+    borderColor: ''
+  }
+
+  public getLastClickedImg(): HTMLImageElement {
+    return this.lastClickedImgEl;
+  }
+
+  public setLastClickedImg(imgEl: HTMLImageElement) {
+    // 'data-oit-target' is set for locating current image
+    imgEl.setAttribute('data-oit-target', '1');
+    this.lastClickedImgEl = imgEl;
+  }
+
+  /**
+   * remove 'data-oit-target'
+   * restore default border style
+   */
+  public restoreBorderForLastClickedImg() {
+    if (!this.lastClickedImgEl) {
+      return;
+    }
+    this.lastClickedImgEl.removeAttribute('data-oit-target');
+    const lastClickedImgStyle = this.lastClickedImgEl.style;
+    if (lastClickedImgStyle) {
+      lastClickedImgStyle.setProperty('border-width', this.defaultStyle.borderWidth);
+      lastClickedImgStyle.setProperty('border-style', this.defaultStyle.borderStyle);
+      lastClickedImgStyle.setProperty('border-color', this.defaultStyle.borderColor);
+    }
+  }
+
+  public setDefaultStyle(borderWidth: string, borderStyle: string, borderColor: string) {
+    this.defaultStyle.borderWidth = borderWidth;
+    this.defaultStyle.borderStyle = borderStyle;
+    this.defaultStyle.borderColor = borderColor;
+  }
+
 }
 

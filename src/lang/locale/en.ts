@@ -139,6 +139,7 @@ export default {
 
   // tip:
   COPY_IMAGE_SUCCESS: 'Copy the image successfully!',
-  COPY_IMAGE_ERROR: 'Fail to copy the image!'
+  COPY_IMAGE_ERROR: 'Fail to copy the image!',
+  RESET_VIEW_MODE: 'Reset the view mode!',
 
 };

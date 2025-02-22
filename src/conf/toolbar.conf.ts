@@ -1,0 +1,93 @@
+import { SEPARATOR_SYMBOL } from "./constants";
+
+
+export const TOOLBAR_CONF = [{
+  title: "ZOOM_TO_100",
+  class: 'toolbar_zoom_to_100',
+  icon: 'zoom-to-100',
+  enableToolbarIcon: true,
+  enableMenu: true,
+  enableHotKey: true
+}, {
+  title: "ZOOM_IN",
+  class: 'toolbar_zoom_in',
+  icon: 'zoom-in',
+  enableToolbarIcon: true,
+  enableMenu: false,
+  enableHotKey: true
+}, {
+  title: "ZOOM_OUT",
+  class: 'toolbar_zoom_out',
+  icon: 'zoom-out',
+  enableToolbarIcon: true,
+  enableMenu: false,
+  enableHotKey: true
+}, {
+  title: "FULL_SCREEN",
+  class: 'toolbar_full_screen',
+  icon: 'expand',
+  enableToolbarIcon: true,
+  enableMenu: true,
+  enableHotKey: true
+}, {
+  title: "REFRESH",
+  class: 'toolbar_refresh',
+  icon: 'refresh-ccw',
+  enableToolbarIcon: true,
+  enableMenu: true,
+  enableHotKey: true
+}, {
+  title: "ROTATE_LEFT",
+  class: 'toolbar_rotate_left',
+  icon: 'rotate-ccw',
+  enableToolbarIcon: true,
+  enableMenu: true,
+  enableHotKey: true
+}, {
+  title: "ROTATE_RIGHT",
+  class: 'toolbar_rotate_right',
+  icon: 'rotate-cw',
+  enableToolbarIcon: true,
+  enableMenu: true,
+  enableHotKey: true
+}, {
+  title: "SCALE_X",
+  class: 'toolbar_scale_x',
+  icon: 'move-horizontal',
+  enableToolbarIcon: true,
+  enableMenu: true,
+  enableHotKey: true
+}, {
+  title: "SCALE_Y",
+  class: 'toolbar_scale_y',
+  icon: 'move-vertical',
+  enableToolbarIcon: true,
+  enableMenu: true,
+  enableHotKey: true
+}, {
+  title: "INVERT_COLOR",
+  class: 'toolbar_invert_color',
+  icon: 'droplet',
+  enableToolbarIcon: true,
+  enableMenu: true,
+  enableHotKey: true
+}, {
+  title: "COPY",
+  class: 'toolbar_copy',
+  icon: 'copy',
+  enableToolbarIcon: true,
+  enableMenu: true,
+  enableHotKey: true
+}, {
+  title: SEPARATOR_SYMBOL,
+  enableToolbarIcon: false,
+  enableMenu: true,
+  enableHotKey: false
+}, {
+  title: "CLOSE",
+  class: 'toolbar_close',
+  icon: 'trash',
+  enableToolbarIcon: false,
+  enableMenu: true,
+  enableHotKey: true
+}];

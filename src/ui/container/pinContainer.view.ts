@@ -1,7 +1,7 @@
 import {OIT_CLASS} from "src/conf/constants";
 import ImageToolkitPlugin from "src/main";
 import {ContainerView} from "./container.view";
-import {ImgCto} from "../../model/imgTo";
+import {ImgCto} from "../../model/container.to";
 import {MenuView} from "../menuView";
 
 /**
@@ -31,19 +31,19 @@ export class PinContainerView extends ContainerView {
       </div>
     </div>
      */
-    if (!this.imgInfo.oitContainerEl) { // init at first time
+    if (!this.imgInfo.modeContainerEl) { // init at first time
       // create: <div class="oit oit-pin">
-      (this.imgInfo.oitContainerEl = createDiv()).addClass(OIT_CLASS.CONTAINER_ROOT, OIT_CLASS.CONTAINER_PIN)
-      parentContainerEl.appendChild(this.imgInfo.oitContainerEl);
+      (this.imgInfo.modeContainerEl = createDiv()).addClass(OIT_CLASS.CONTAINER_ROOT, OIT_CLASS.MODE_CONTAINER_PIN)
+      parentContainerEl.appendChild(this.imgInfo.modeContainerEl);
       // <div class="oit oit-pin"> <div class="oit-img-container"/> </div>
-      this.imgInfo.oitContainerEl.append(this.imgInfo.imgContainerEl = createDiv(OIT_CLASS.IMG_CONTAINER));
+      this.imgInfo.modeContainerEl.append(this.imgInfo.imgContainerEl = createDiv(OIT_CLASS.IMG_CONTAINER));
 
       // <div class="oit-img-tip"></div>
-      this.imgInfo.oitContainerEl.appendChild(this.imgInfo.imgTipEl = createDiv(OIT_CLASS.IMG_TTP)); // oit-img-tip
+      this.imgInfo.modeContainerEl.appendChild(this.imgInfo.imgTipEl = createDiv(OIT_CLASS.IMG_TTP)); // oit-img-tip
       this.imgInfo.imgTipEl.hidden = true; // hide 'oit-img-tip'
 
       // <div class="img-player"> <img class='img-fullscreen' src=''> </div>
-      this.imgInfo.oitContainerEl.appendChild(this.imgInfo.imgPlayerEl = createDiv(OIT_CLASS.IMG_PLAYER)); // img-player for full screen mode
+      this.imgInfo.modeContainerEl.appendChild(this.imgInfo.imgPlayerEl = createDiv(OIT_CLASS.IMG_PLAYER)); // img-player for full screen mode
       this.imgInfo.imgPlayerEl.appendChild(this.imgInfo.imgPlayerImgViewEl = createEl('img'));
       this.imgInfo.imgPlayerImgViewEl.addClass(OIT_CLASS.IMG_FULLSCREEN);
     }
@@ -53,7 +53,7 @@ export class PinContainerView extends ContainerView {
   }
 
   public openOitContainerView = (matchedImg: ImgCto): void => {
-    if (!this.imgInfo.oitContainerEl) {
+    if (!this.imgInfo.modeContainerEl) {
       console.error('obsidian-image-toolkit: oit-*-container-view has not been initialized!');
       return;
     }
@@ -69,7 +69,7 @@ export class PinContainerView extends ContainerView {
     }
     matchedImg.imgViewEl.style.setProperty('z-index', matchedImg.zIndex + '');
     // display 'oit-pin-container-view'
-    this.imgInfo.oitContainerEl.style.setProperty('display', 'block');
+    this.imgInfo.modeContainerEl.style.setProperty('display', 'block');
   }
 
   /**
@@ -82,7 +82,7 @@ export class PinContainerView extends ContainerView {
       // PinContainerView doesn't need click event to hide container for now
       return;
     }
-    if (!this.imgInfo.oitContainerEl) return;
+    if (!this.imgInfo.modeContainerEl) return;
     if (!activeImg && !(activeImg = this.imgGlobalStatus.activeImg)) return;
     // console.log('closeContainerView', event, activeImg)
     this.renderImgView(activeImg.imgViewEl, '', '');
@@ -97,7 +97,7 @@ export class PinContainerView extends ContainerView {
       }
     }
     if (!globalPopupFlag) {
-      this.imgInfo.oitContainerEl.style.setProperty('display', 'none'); // hide 'oit-pin-container-view'
+      this.imgInfo.modeContainerEl.style.setProperty('display', 'none'); // hide 'oit-pin-container-view'
       this.imgGlobalStatus.activeImgZIndex = 0;
       this.imgInfo.imgList.forEach(value => {
         value.zIndex = 0;

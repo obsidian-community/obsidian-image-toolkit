@@ -1,5 +1,5 @@
-import {App, PluginSettingTab, Setting} from 'obsidian';
-import {t} from 'src/lang/helpers';
+import { App, PluginSettingTab, Setting } from 'obsidian';
+import { t } from 'src/lang/helpers';
 import type ImageToolkitPlugin from "src/main";
 import {
   GALLERY_IMG_BORDER_ACTIVE_COLOR,
@@ -13,15 +13,15 @@ import {
   MODIFIER_HOTKEYS,
   MOVE_THE_IMAGE,
   SWITCH_THE_IMAGE,
-  TOOLBAR_CONF,
-  ViewMode
-} from './constants';
+  ViewModeEnum
+} from '../conf/constants';
+import { TOOLBAR_CONF } from "src/conf/toolbar.conf";
 import Pickr from '@simonwep/pickr';
-import {SettingsIto} from "../model/settings.to";
+import { SettingsIto } from "../model/settings.to";
 
 
 export const DEFAULT_SETTINGS: SettingsIto = {
-  viewMode: ViewMode.Normal,
+  viewMode: ViewModeEnum.Normal,
 
   viewImageInEditor: true,
   viewImageInCPB: true,
@@ -51,23 +51,21 @@ export const DEFAULT_SETTINGS: SettingsIto = {
   // hotkeys conf
   moveTheImageHotkey: MOVE_THE_IMAGE.DEFAULT_HOTKEY,
   switchTheImageHotkey: SWITCH_THE_IMAGE.DEFAULT_HOTKEY,
-  doubleClickToolbar: TOOLBAR_CONF[3].class, // FULL_SCREEN
+  doubleClickToolbar: 'toolbar_full_screen', // FULL_SCREEN
   viewTriggerHotkey: MODIFIER_HOTKEYS.NONE
 }
 
 export class ImageToolkitSettingTab extends PluginSettingTab {
-  private plugin: ImageToolkitPlugin;
 
-  constructor(app: App, plugin: ImageToolkitPlugin) {
+  constructor(app: App, private readonly plugin: ImageToolkitPlugin) {
     super(app, plugin);
-    this.plugin = plugin;
   }
 
   display(): void {
-    let {containerEl} = this;
+    let { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl('h2', {text: t("IMAGE_TOOLKIT_SETTINGS_TITLE")});
+    //containerEl.createEl('h2', {text: t("IMAGE_TOOLKIT_SETTINGS_TITLE")});
 
     // Common Settings:
     this.displayCommonSettings(containerEl);
@@ -79,7 +77,7 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
     this.displayPinModeSettings(containerEl);
 
     //region >>> VIEW_DETAILS_SETTINGS
-    containerEl.createEl('h3', {text: t("VIEW_DETAILS_SETTINGS")});
+    containerEl.createEl('h3', { text: t("VIEW_DETAILS_SETTINGS") });
 
     let imgMoveSpeedScaleText: HTMLDivElement;
     new Setting(containerEl)
@@ -94,11 +92,11 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
           this.plugin.saveSettings();
         }))
       .settingEl.createDiv('', (el) => {
-      imgMoveSpeedScaleText = el;
-      el.style.minWidth = "2.3em";
-      el.style.textAlign = "right";
-      el.innerText = " " + this.plugin.settings.imageMoveSpeed.toString();
-    });
+        imgMoveSpeedScaleText = el;
+        el.style.minWidth = "2.3em";
+        el.style.textAlign = "right";
+        el.innerText = " " + this.plugin.settings.imageMoveSpeed.toString();
+      });
 
     new Setting(containerEl)
       .setName(t("IMAGE_TIP_TOGGLE_NAME"))
@@ -128,7 +126,7 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
     //endregion
 
     //region >>> IMAGE_BORDER_SETTINGS
-    containerEl.createEl('h3', {text: t("IMAGE_BORDER_SETTINGS")});
+    containerEl.createEl('h3', { text: t("IMAGE_BORDER_SETTINGS") });
 
     new Setting(containerEl)
       .setName(t("IMAGE_BORDER_TOGGLE_NAME"))
@@ -187,7 +185,7 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
     let galleryNavbarDefaultColorSetting: Setting, galleryNavbarHoverColorSetting: Setting,
       galleryImgBorderToggleSetting: Setting, galleryImgBorderActiveColorSetting: Setting;
 
-    containerEl.createEl('h3', {text: t("GALLERY_NAVBAR_SETTINGS")});
+    containerEl.createEl('h3', { text: t("GALLERY_NAVBAR_SETTINGS") });
 
     new Setting(containerEl)
       .setName(t("GALLERY_NAVBAR_TOGGLE_NAME"))
@@ -220,8 +218,8 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
     //endregion
 
     //region >>> HOTKEYS_SETTINGS
-    containerEl.createEl('h3', {text: t("HOTKEY_SETTINGS")});
-    containerEl.createEl('p', {text: t("HOTKEY_SETTINGS_DESC")});
+    containerEl.createEl('h3', { text: t("HOTKEY_SETTINGS") });
+    containerEl.createEl('p', { text: t("HOTKEY_SETTINGS_DESC") });
 
     if (this.plugin.settings.moveTheImageHotkey === this.plugin.settings.switchTheImageHotkey) {
       this.plugin.settings.moveTheImageHotkey = MOVE_THE_IMAGE.DEFAULT_HOTKEY;
@@ -306,24 +304,24 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
   }
 
   private displayCommonSettings(containerEl: HTMLElement) {
-    containerEl.createEl('h3', {text: t('COMMON_SETTINGS')});
+    containerEl.createEl('h3', { text: t('COMMON_SETTINGS') });
 
     new Setting(containerEl)
       .setName(t("VIEW_MODE_NAME"))
       .addDropdown(async (dropdown) => {
-        for (const key in ViewMode) {
+        for (const key in ViewModeEnum) {
           // @ts-ignore
           dropdown.addOption(key, t('VIEW_MODE_' + key.toUpperCase()));
         }
         dropdown.setValue(this.plugin.settings.viewMode);
-        dropdown.onChange(async (option: ViewMode) => {
+        dropdown.onChange(async (option: ViewModeEnum) => {
           await this.plugin.switchViewMode(option);
         });
       });
   }
 
   private displayViewTriggerSettings(containerEl: HTMLElement) {
-    containerEl.createEl('h3', {text: t("VIEW_TRIGGER_SETTINGS")});
+    containerEl.createEl('h3', { text: t("VIEW_TRIGGER_SETTINGS") });
 
     new Setting(containerEl)
       .setName(t("VIEW_IMAGE_IN_EDITOR_NAME"))
@@ -375,7 +373,7 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
     let pinMaximumSetting: Setting,
       pinCoverSetting: Setting;
 
-    containerEl.createEl('h3', {text: t("PIN_MODE_SETTINGS")});
+    containerEl.createEl('h3', { text: t("PIN_MODE_SETTINGS") });
 
     /*new Setting(containerEl)
       .setName(t("PIN_MODE_NAME"))
@@ -449,7 +447,7 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
       .setName(t(name))
       .then((setting) => {
         pickr = Pickr.create({
-          el: setting.controlEl.createDiv({cls: "picker"}),
+          el: setting.controlEl.createDiv({ cls: "picker" }),
           theme: 'nano',
           position: "left-middle",
           lockOpacity: false, // If true, the user won't be able to adjust any opacity.
@@ -471,7 +469,7 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
         })
           .on('show', (color: Pickr.HSVaColor, instance: Pickr) => { // Pickr got opened
             if (!this.plugin.settings.galleryNavbarToggle) pickr?.hide();
-            const {result} = (pickr.getRoot() as any).interaction;
+            const { result } = (pickr.getRoot() as any).interaction;
             requestAnimationFrame(() =>
               requestAnimationFrame(() => result.select())
             );
@@ -507,6 +505,8 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
     } else if ('IMG_VIEW_BACKGROUND_COLOR_NAME' === name) {
       this.plugin.settings.imgViewBackgroundColor = savedColor;
       // this.plugin.containerView?.setImgViewDefaultBackgroundForImgList();
+
+      //todo:setImgViewDefaultBackgroundForImgList
       this.plugin.getAllContainerViews().forEach(container => {
         container.setImgViewDefaultBackgroundForImgList();
       });

@@ -1,19 +1,17 @@
-import {IMG_DEFAULT_BACKGROUND_COLOR, IMG_FULL_SCREEN_MODE, OIT_CLASS, ViewMode} from "src/conf/constants";
+import { IMG_DEFAULT_BACKGROUND_COLOR, IMG_FULL_SCREEN_MODE, OIT_CLASS, ViewModeEnum } from "src/conf/constants";
 import ImageToolkitPlugin from "src/main";
-import {ImgCto, ImgInfoCto, ImgStatusCto} from "src/model/imgTo";
-import {ImgUtil} from "src/util/imgUtil";
-import {OffsetSizeIto} from "../../model/commonTo";
-import {MenuView} from "../menuView";
-import {Notice} from "obsidian";
-import {t} from "../../lang/helpers";
+import { ImgCto, ImageDomManager, ImgOprStateCto } from "src/model/container.to";
+import { ImageUtil } from "src/util/image.util";
+import { OffsetSizeIto } from "../../model/common.to";
+import { MenuView } from "../menuView";
+import { Notice } from "obsidian";
+import { t } from "../../lang/helpers";
 
 export abstract class ContainerView {
 
-  protected readonly plugin: ImageToolkitPlugin;
-
   // body
-  protected parentContainerEl: Element;
-  protected doc: Document;
+  protected parentContainerEl: Element | null;
+  protected doc: Document | null;
 
   // the clicked original image element
   protected lastClickedImgEl: HTMLImageElement;
@@ -23,28 +21,26 @@ export abstract class ContainerView {
     borderColor: ''
   }
 
-  protected imgGlobalStatus: ImgStatusCto = new ImgStatusCto();
+  protected imgGlobalStatus: ImgOprStateCto = new ImgOprStateCto();
 
-  protected imgInfo: ImgInfoCto = new ImgInfoCto();
+  protected imgInfo: ImageDomManager = new ImageDomManager();
 
   // Right click menu
   protected menuView: MenuView;
 
 
-  protected constructor(plugin: ImageToolkitPlugin) {
-    this.plugin = plugin;
-  }
+  protected constructor(protected readonly plugin: ImageToolkitPlugin) { }
 
-  public getViewMode = (): ViewMode => {
+  public getViewMode = (): ViewModeEnum => {
     return this.plugin.settings.viewMode;
   }
 
   public isPinMode = (): boolean => {
-    return ViewMode.Pin === this.getViewMode();
+    return ViewModeEnum.Pin === this.getViewMode();
   }
 
   public isNormalMode = (): boolean => {
-    return ViewMode.Normal === this.getViewMode();
+    return ViewModeEnum.Normal === this.getViewMode();
   }
 
   protected setMenuView = (menuView: MenuView) => {
@@ -77,13 +73,13 @@ export abstract class ContainerView {
 
   abstract setActiveImgForMouseEvent(imgCto: ImgCto): void;
 
-  public getParentContainerEl = (targetEl?: HTMLImageElement): Element => {
+  public getParentContainerEl = (targetEl?: HTMLImageElement): Element | null => {
     if (!targetEl) {
       return this.parentContainerEl;
     }
     if (!this.parentContainerEl) {
-      this.parentContainerEl = targetEl.matchParent('body');
-      this.doc = this.parentContainerEl.ownerDocument;
+      this.doc = targetEl.ownerDocument;
+      this.parentContainerEl = this.doc?.body;
     }
     return this.parentContainerEl;
   }
@@ -130,8 +126,8 @@ export abstract class ContainerView {
     this.restoreBorderForLastClickedImg();
     this.removeGalleryNavbar();
 
-    this.imgInfo.oitContainerEl?.remove();
-    this.imgInfo.oitContainerEl = null;
+    this.imgInfo.modeContainerEl?.remove();
+    this.imgInfo.modeContainerEl = null;
     this.imgInfo.imgContainerEl = null;
 
     this.imgGlobalStatus.dragging = false;
@@ -234,7 +230,7 @@ export abstract class ContainerView {
   //endregion
 
   //region ================== Image ========================
-  protected updateImgViewElAndList = (imgInfo: ImgInfoCto) => {
+  protected updateImgViewElAndList = (imgInfo: ImageDomManager) => {
     if (!imgInfo?.imgContainerEl) return;
     const pinMaximum: number = this.getConfiguredPinMaximum();
     const imgNum = this.imgInfo.imgList.length;
@@ -297,7 +293,7 @@ export abstract class ContainerView {
         if (realImg.width > 0 || realImg.height > 0) {
           clearInterval(imgCto.refreshImgInterval);
           imgCto.refreshImgInterval = null;
-          this.setImgViewPosition(ImgUtil.calculateImgZoomSize(realImg, imgCto,
+          this.setImgViewPosition(ImageUtil.calculateImgZoomSize(realImg, imgCto,
             this.parentContainerEl?.clientWidth, this.parentContainerEl?.clientHeight), 0);
           this.renderImgView(imgCto.imgViewEl, imgSrc, imgAlt);
           this.renderImgTip(imgCto);
@@ -482,7 +478,7 @@ export abstract class ContainerView {
       }
       if (this.isNormalMode()) {
         // click event: hide container view
-        this.imgInfo.oitContainerEl.addEventListener('click', this.closeContainerView);
+        this.imgInfo.modeContainerEl.addEventListener('click', this.closeContainerView);
       }
       matchedImg.imgViewEl.addEventListener('mouseenter', this.mouseenterImgView);
       matchedImg.imgViewEl.addEventListener('mouseleave', this.mouseleaveImgView);
@@ -490,7 +486,7 @@ export abstract class ContainerView {
       matchedImg.imgViewEl.addEventListener('mousedown', this.mousedownImgView);
       matchedImg.imgViewEl.addEventListener('mouseup', this.mouseupImgView);
       // zoom the image via mouse wheel
-      matchedImg.imgViewEl.addEventListener('mousewheel', this.mousewheelViewContainer, {passive: true});
+      matchedImg.imgViewEl.addEventListener('mousewheel', this.mousewheelViewContainer, { passive: true });
     } else {
       if (!this.imgGlobalStatus.popup) {
         this.doc.removeEventListener('keydown', this.triggerKeydown);
@@ -503,7 +499,7 @@ export abstract class ContainerView {
         }
       }
       if (!this.isPinMode()) {
-        this.imgInfo.oitContainerEl.removeEventListener('click', this.closeContainerView);
+        this.imgInfo.modeContainerEl.removeEventListener('click', this.closeContainerView);
       }
       matchedImg.imgViewEl.removeEventListener('mouseenter', this.mouseenterImgView);
       matchedImg.imgViewEl.removeEventListener('mouseleave', this.mouseleaveImgView);
@@ -600,16 +596,16 @@ export abstract class ContainerView {
       return;
     switch (orientation) {
       case 'UP':
-        this.mousemoveImgView(null, {offsetX: 0, offsetY: -this.plugin.settings.imageMoveSpeed});
+        this.mousemoveImgView(null, { offsetX: 0, offsetY: -this.plugin.settings.imageMoveSpeed });
         break;
       case 'DOWN':
-        this.mousemoveImgView(null, {offsetX: 0, offsetY: this.plugin.settings.imageMoveSpeed});
+        this.mousemoveImgView(null, { offsetX: 0, offsetY: this.plugin.settings.imageMoveSpeed });
         break;
       case 'LEFT':
-        this.mousemoveImgView(null, {offsetX: -this.plugin.settings.imageMoveSpeed, offsetY: 0});
+        this.mousemoveImgView(null, { offsetX: -this.plugin.settings.imageMoveSpeed, offsetY: 0 });
         break;
       case 'RIGHT':
-        this.mousemoveImgView(null, {offsetX: this.plugin.settings.imageMoveSpeed, offsetY: 0});
+        this.mousemoveImgView(null, { offsetX: this.plugin.settings.imageMoveSpeed, offsetY: 0 });
         break;
       case 'UP_LEFT':
         this.mousemoveImgView(null, {
@@ -786,7 +782,7 @@ export abstract class ContainerView {
     }
     let activeImgViewEl: HTMLImageElement;
     if (!activeImg || !(activeImgViewEl = activeImg.imgViewEl)) return;
-    let offsetSize: OffsetSizeIto = {offsetX: 0, offsetY: 0};
+    let offsetSize: OffsetSizeIto = { offsetX: 0, offsetY: 0 };
     if (event) {
       offsetSize.offsetX = event.offsetX;
       offsetSize.offsetY = event.offsetY;
@@ -794,7 +790,7 @@ export abstract class ContainerView {
       offsetSize.offsetX = activeImg.curWidth / 2;
       offsetSize.offsetY = activeImg.curHeight / 2;
     }
-    const zoomData: ImgCto = ImgUtil.zoom(ratio, activeImg, offsetSize, actualSize);
+    const zoomData: ImgCto = ImageUtil.zoom(ratio, activeImg, offsetSize, actualSize);
     this.renderImgTip(activeImg);
     activeImgViewEl.setAttribute('width', zoomData.curWidth + 'px');
     activeImgViewEl.style.setProperty('margin-top', zoomData.top + 'px', 'important');
@@ -826,26 +822,26 @@ export abstract class ContainerView {
         break;
       case 'toolbar_rotate_left':
         activeImg.rotate -= 90;
-        ImgUtil.transform(activeImg);
+        ImageUtil.transform(activeImg);
         break;
       case 'toolbar_rotate_right':
         activeImg.rotate += 90;
-        ImgUtil.transform(activeImg);
+        ImageUtil.transform(activeImg);
         break;
       case 'toolbar_scale_x':
         activeImg.scaleX = !activeImg.scaleX;
-        ImgUtil.transform(activeImg);
+        ImageUtil.transform(activeImg);
         break;
       case 'toolbar_scale_y':
         activeImg.scaleY = !activeImg.scaleY;
-        ImgUtil.transform(activeImg);
+        ImageUtil.transform(activeImg);
         break;
       case 'toolbar_invert_color':
         activeImg.invertColor = !activeImg.invertColor;
-        ImgUtil.invertImgColor(activeImg.imgViewEl, activeImg.invertColor);
+        ImageUtil.invertImgColor(activeImg.imgViewEl, activeImg.invertColor);
         break;
       case 'toolbar_copy':
-        ImgUtil.copyImage(activeImg.imgViewEl, activeImg.curWidth, activeImg.curHeight);
+        ImageUtil.copyImage(activeImg.imgViewEl, activeImg.curWidth, activeImg.curHeight);
         break;
       case 'toolbar_close':
         this.closeContainerView(event, activeImg);

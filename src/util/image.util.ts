@@ -1,13 +1,13 @@
-import {Notice} from 'obsidian';
-import {t} from 'src/lang/helpers';
-import {IMG_VIEW_MIN, ZOOM_FACTOR} from '../conf/constants'
-import {ImgCto, ImgInfoIto} from "../model/imgTo";
-import {OffsetSizeIto} from "../model/commonTo";
+import { Notice, requestUrl, TFile } from 'obsidian';
+import { t } from 'src/lang/helpers';
+import { IMG_VIEW_MIN, ZOOM_FACTOR } from '../conf/constants'
+import { ImgCto, ImgInfoIto } from "../model/container.to";
+import { OffsetSizeIto } from "../model/common.to";
 
 /**
  * Image utility class
  */
-export class ImgUtil {
+export class ImageUtil {
 
   public static calculateImgZoomSize = (realImg: HTMLImageElement, imgCto: ImgCto, windowWidth: number, windowHeight: number): ImgCto => {
     if (!windowWidth) {
@@ -53,8 +53,8 @@ export class ImgUtil {
    * @param actualSize
    * @returns
    */
-  public static zoom = (ratio: number, targetImgInfo: ImgCto, offsetSize?: OffsetSizeIto, actualSize?: boolean): ImgCto => {
-    let zoomRatio: number;
+  public static zoom = (ratio: number, targetImgInfo: ImgCto, offsetSize: OffsetSizeIto, actualSize?: boolean): ImgCto => {
+    let zoomRatio: number = 1;
     if (!actualSize) {
       const zoomInFlag = ratio > 0;
       ratio = zoomInFlag ? 1 + ratio : 1 / (1 - ratio);
@@ -133,18 +133,23 @@ export class ImgUtil {
   public static copyImage(imgEle: HTMLImageElement, width: number, height: number) {
     let image = new Image();
     image.crossOrigin = 'anonymous';
-    image.src = imgEle.src;
+    const imageSrc = imgEle.src;
+    image.src = imageSrc;
     image.onload = () => {
       const canvas = document.createElement('canvas');
       canvas.width = image.width;
       canvas.height = image.height;
       const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        new Notice(t("COPY_IMAGE_ERROR"));
+        return;
+      }
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(image, 0, 0);
       try {
         canvas.toBlob(async (blob: any) => {
-          await navigator.clipboard.write([new ClipboardItem({"image/png": blob})])
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })])
             .then(() => {
               new Notice(t("COPY_IMAGE_SUCCESS"));
             }, () => {
@@ -157,7 +162,96 @@ export class ImgUtil {
       }
     };
     image.onerror = () => {
-      new Notice(t("COPY_IMAGE_ERROR"));
+      this.getImageBlogFromUrl(imageSrc)
+        .catch(error => { new Notice(t("COPY_IMAGE_ERROR")); })
+        .then(async (blob: Blob) => {
+          if (!blob) {
+            new Notice(t("COPY_IMAGE_ERROR"));
+            return;
+          }
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })])
+            .then(() => {
+              new Notice(t("COPY_IMAGE_SUCCESS"));
+            }, () => {
+              new Notice(t("COPY_IMAGE_ERROR"));
+            });
+        });
+    }
+  }
+
+  public static async getImageBlogFromUrl(imageUrl: string): Promise<Blob | null> {
+    try {
+      const response = await requestUrl({ url: imageUrl });
+      return new Blob([response.arrayBuffer], { type: response.headers['content-type'] });
+    } catch (error) {
+      console.error('Error fetching image:', error);
+      return null;
+    }
+  }
+
+  public static copyImage3(src: string) {
+
+  }
+
+  public static async copyObsidianImage(imageFile: TFile): Promise<boolean> {
+    try {
+      const arrayBuffer = await imageFile.vault.readBinary(imageFile);
+      const blob = new Blob([arrayBuffer]);
+
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [imageFile.extension === 'png' ? 'image/png' : 'image/jpeg']: blob
+        })
+      ]);
+
+      return true;
+    } catch (error) {
+      console.error('Copy image failed:', error);
+      return false;
+    }
+  }
+
+  public static async copyWebImage(imageUrl: string): Promise<boolean> {
+    try {
+      const response = await requestUrl({ url: imageUrl });
+      const blob = new Blob([response.arrayBuffer], { type: response.headers['content-type'] });
+
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob
+        })
+      ]);
+
+      return true;
+    } catch (error) {
+      console.error('Copy web image failed:', error);
+      return false;
+    }
+  }
+
+  public static async copyBase64Image(imageBase64: string): Promise<boolean> {
+    try {
+      const byteString = atob(imageBase64.split(',')[1]);
+      const mimeString = imageBase64.split(',')[0].split(':')[1].split(';')[0];
+
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+
+      const blob = new Blob([ab], { type: mimeString });
+
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [mimeString]: blob
+        })
+      ]);
+
+      return true;
+    } catch (error) {
+      console.error('Copy base64 image failed:', error);
+      return false;
     }
   }
 

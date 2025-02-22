@@ -1,15 +1,15 @@
-import {Md5} from "md5-typescript";
-import {MarkdownView, TFile} from "obsidian";
+import { Md5 } from "md5-typescript";
+import { MarkdownView, TFile } from "obsidian";
 import ImageToolkitPlugin from "src/main";
-import {md5Img, parseActiveViewData} from "src/util/markdowParse";
-import {NormalContainerView} from "./container/normalContainer.view";
-import {GalleryImgCacheCto, GalleryImgCto} from "../model/galleryNavbarTo";
-import {SettingsIto} from "../model/settings.to";
+import { md5Img, parseActiveViewData } from "src/util/markdowParse";
+import { GalleryImgCacheCto, GalleryImgCto } from "../model/galleryNavbar.to";
+import { SettingsIto } from "../model/settings.to";
+import { NormalContainerNew } from "./container-new/normalContainer.view";
 
 export class GalleryNavbarView {
   private readonly plugin: ImageToolkitPlugin;
   private readonly settings: SettingsIto;
-  private readonly mainContainerView: NormalContainerView;
+  private readonly mainContainerView: NormalContainerNew;
 
   // whether to display gallery navbar
   private state: boolean = false;
@@ -27,7 +27,7 @@ export class GalleryNavbarView {
   private readonly CACHE_LIMIT: number = 10;
   private readonly CLICK_TIME: number = 150;
 
-  constructor(mainContainerView: NormalContainerView, plugin: ImageToolkitPlugin) {
+  constructor(mainContainerView: NormalContainerNew, plugin: ImageToolkitPlugin) {
     this.mainContainerView = mainContainerView;
     this.plugin = plugin;
     this.settings = plugin.settings;
@@ -40,7 +40,7 @@ export class GalleryNavbarView {
     if (!activeView
       || 'markdown' !== activeView.getViewType()
       // modal-container: community plugin, flashcards (Space Repetition)
-      || 0 < this.mainContainerView.getDoc().getElementsByClassName('modal-container').length) {
+      || 0 < this.mainContainerView.getOwnerDoc().getElementsByClassName('modal-container').length) {
       if (this.galleryNavbarEl) this.galleryNavbarEl.hidden = true;
       if (this.galleryListEl) this.galleryListEl.innerHTML = '';
       return;
@@ -304,7 +304,7 @@ export class GalleryNavbarView {
     this.galleryMouseDownClientX = event.clientX;
     this.galleryTranslateX += moveDistance;
 
-    const windowWidth = this.mainContainerView.getDoc().documentElement.clientWidth || this.mainContainerView.getDoc().body.clientWidth;
+    const windowWidth = this.mainContainerView.getOwnerDoc().documentElement.clientWidth || this.mainContainerView.getOwnerDoc().body.clientWidth;
     const imgLiWidth = (this.galleryListEl.childElementCount - 1) * 52;
     // console.log('move...', 'windowWidth=' + windowWidth, 'galleryTranslateX=' + galleryTranslateX, 'li count=' + imgInfo.galleryList.childElementCount);
     if (this.galleryTranslateX + 50 >= windowWidth) this.galleryTranslateX = windowWidth - 50;
