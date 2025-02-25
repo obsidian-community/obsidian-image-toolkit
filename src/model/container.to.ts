@@ -2,8 +2,6 @@
  * ts class object: image operating state
  */
 export class ImgOprStateCto {
-  // true: the popup layer of viewing image is displayed
-  popup: boolean = false;
   // whether the image is being dragged
   dragging: boolean = false;
 
@@ -77,19 +75,18 @@ export class ImageDomManager {
   imgPlayerEl: HTMLDivElement; // 'img-player': including <img class="img-fullscreen" src='' alt=''>
   imgPlayerImgViewEl: HTMLImageElement; // 'img-fullscreen'
 
-  imgList: Array<ImgCto> = new Array<ImgCto>();
-
   constructor(oitContainerEl: HTMLDivElement) {
     this.modeContainerEl = oitContainerEl;
   }
 
+  /* imgList: Array<ImgCto> = new Array<ImgCto>();
   public getPopupImgNum = (): number => {
     let num: number = 0;
     for (const imgCto of this.imgList) {
       if (imgCto.popup) num++;
     }
     return num;
-  }
+  } */
 }
 
 export class ImgCto {
@@ -97,7 +94,7 @@ export class ImgCto {
   mtime: number; // modified time
   popup: boolean = false; // currently whether it's popped-up
 
-  targetOriginalImgEl: HTMLImageElement;
+  //targetOriginalImgEl: HTMLImageElement;
 
   imgViewEl: HTMLImageElement; // 'oit-img-view'
   refreshImgInterval: NodeJS.Timeout | null;

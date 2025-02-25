@@ -108,7 +108,7 @@ export abstract class ContainerView {
   public initContainerView = (targetEl: HTMLImageElement, parentContainerEl: Element): ImgCto => {
     const matchedImg = this.initContainerDom(parentContainerEl);
     if (!matchedImg) return null;
-    matchedImg.targetOriginalImgEl = targetEl;
+    //matchedImg.targetOriginalImgEl = targetEl;
     this.restoreBorderForLastClickedImg();
     this.initDefaultData(matchedImg, window.getComputedStyle(targetEl));
     this.addBorderForLastClickedImg(targetEl);

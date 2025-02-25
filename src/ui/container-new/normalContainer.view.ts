@@ -15,6 +15,18 @@ export class NormalContainerNew extends ContainerViewNew {
       createDiv({ cls: OIT_CLASS.MODE_CONTAINER_NORMAL, parent: rootContainerEl }));
   }
 
+  //@Override
+  protected getMaxPopupImgCount(): number {
+    return 1;
+  }
+
+  //@Override
+  protected checkStatus(): boolean {
+    // none of popped-up images
+    return this.isNoPopupImg();
+  }
+
+  //@Override
   protected initContainerDom(bodyEl: Element): void {
     let modeContainerEl = this.imageDomManager.modeContainerEl;
     if (!modeContainerEl) {
@@ -67,6 +79,7 @@ export class NormalContainerNew extends ContainerViewNew {
     }
   }
 
+  //@Override
   protected getMatchedImg(): ImgCto {
     if (0 === this.activeImages.length) {
       this.updateImgViewElAndList();
@@ -79,7 +92,6 @@ export class NormalContainerNew extends ContainerViewNew {
       return;
     }
     matchedImg.popup = true;
-    this.imgGlobalState.popup = true;
     // display 'oit-normal'
     this.imageDomManager.modeContainerEl.style.display = 'block';
   }
@@ -108,7 +120,6 @@ export class NormalContainerNew extends ContainerViewNew {
       this.renderImgTitle('', '');
       this.renderImgView(activeImg.imgViewEl, '', '');
       this.removeEvents(activeImg);
-      this.imgGlobalState.popup = false;
       activeImg.popup = false;
       activeImg.mtime = 0;
     }
@@ -140,7 +151,6 @@ export class NormalContainerNew extends ContainerViewNew {
     matchedImg.imgViewEl.addEventListener('mouseleave', this.mouseleaveImgView);
     // drag the image via mouse
     matchedImg.imgViewEl.addEventListener('mousedown', this.mousedownImgView);
-    matchedImg.imgViewEl.addEventListener('mouseup', this.mouseupImgView);
     // zoom the image via mouse wheel
     matchedImg.imgViewEl.addEventListener('mousewheel', this.mousewheelImgView, { passive: true });
   }
@@ -154,7 +164,6 @@ export class NormalContainerNew extends ContainerViewNew {
     matchedImg.imgViewEl.removeEventListener('mouseleave', this.mouseleaveImgView);
     // drag the image via mouse
     matchedImg.imgViewEl.removeEventListener('mousedown', this.mousedownImgView);
-    matchedImg.imgViewEl.removeEventListener('mouseup', this.mouseupImgView);
     // zoom the image via mouse wheel
     matchedImg.imgViewEl.removeEventListener('mousewheel', this.mousewheelImgView);
   }
@@ -165,7 +174,7 @@ export class NormalContainerNew extends ContainerViewNew {
    */
   protected triggerKeydown = (event: KeyboardEvent) => {
     // console.info('keydown:', event.key, this.viewMode, this.imgGlobalStatus);
-    if (!this.imgGlobalState.popup) {
+    if (this.isNoPopupImg()) {
       return;
     }
     if ('Escape' === event.key) {
@@ -213,7 +222,7 @@ export class NormalContainerNew extends ContainerViewNew {
 
   protected triggerKeyup = (event: KeyboardEvent) => {
     // console.log('keyup:', event.key, this.viewMode, this.imgGlobalStatus);
-    if (this.imgGlobalState.fullScreen || !this.imgGlobalState.popup) {
+    if (this.imgGlobalState.fullScreen || this.isNoPopupImg()) {
       return;
     }
     switch (event.key) {
@@ -239,7 +248,7 @@ export class NormalContainerNew extends ContainerViewNew {
   }
 
   protected moveImgViewByHotkey(event: KeyboardEvent, orientation: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'UP_LEFT' | 'UP_RIGHT' | 'DOWN_LEFT' | 'DOWN_RIGHT') {
-    if (!orientation || !this.imgGlobalState.popup
+    if (!orientation || this.isNoPopupImg()
       || !this.checkHotkeySettings(event, this.plugin.settings.moveTheImageHotkey)) {
       return;
     }

@@ -6,6 +6,8 @@ import { MenuView } from "../menuView";
 import { IMG_DEFAULT_BACKGROUND_COLOR, IMG_FULL_SCREEN_MODE, OIT_CLASS, ViewModeEnum } from "src/conf/constants";
 import { ImageUtil } from "src/util/image.util";
 import { OffsetSizeIto } from "src/model/common.to";
+import { log } from "console";
+
 
 export abstract class ContainerViewNew {
 
@@ -18,13 +20,13 @@ export abstract class ContainerViewNew {
   protected readonly imgGlobalState: ImgOprStateCto = new ImgOprStateCto();
 
   // Right click menu
-  protected menuView: MenuView;
+  protected readonly menuView: MenuView = new MenuView(this)
 
   protected constructor(
     protected readonly viewMode: ViewModeEnum,
     protected readonly plugin: ImageToolkitPlugin,
     protected readonly ownerDoc: Document,
-    modeContainerEl: HTMLDivElement // 'oit-normal', 'oit-pin'
+    modeContainerEl: HTMLDivElement // 'oit-normal', 'oit-pin': second level under 'oit'
   ) {
     this.imageDomManager = new ImageDomManager(modeContainerEl);
   }
@@ -33,23 +35,38 @@ export abstract class ContainerViewNew {
     return this.ownerDoc;
   }
 
+  protected abstract getMaxPopupImgCount(): number;
+
+  public getGlobalActiveImg(): ImgCto | null {
+    return this.imgGlobalState.activeImg;
+  }
+
   protected setGlobalActiveImg(imgCto: ImgCto | null): void {
   }
 
+  //#region ========== activeImages ==========
   public getPopupImgNum(): number {
     return this.activeImages.filter(img => img.popup).length;
   }
 
+  public isAnyPopupImg(): boolean {
+    return this.activeImages.some(img => img.popup);
+  }
+
+  public isNoPopupImg(): boolean {
+    return this.activeImages.every(img => !img.popup);
+  }
+  //#endregion ## activeImages ##
+
+
+  //#region ========== LastClickedImg ==========
   public getLastClickedImgEl(): HTMLImageElement {
     return this.lastClickedImg.getLastClickedImg();
   }
-
-  public getActiveImg(): ImgCto | null {
-    return this.imgGlobalState.activeImg;
-  }
+  //#endregion ## LastClickedImg ##
 
 
-  //#region ========== Container View & Init ==========
+  //#region ========== Container View&Init ==========
   /**
    * Display the clicked image (Core Entry)
    * @param imageEl the clicked image's element
@@ -60,6 +77,7 @@ export abstract class ContainerViewNew {
     }
     const matchedImg = this.initContainerView(imageEl, this.ownerDoc.body);
     if (!matchedImg) {
+      console.warn('[oit] Found no matched image!', imageEl);
       return;
     }
     this.imgGlobalState.activeImg = matchedImg;
@@ -76,7 +94,7 @@ export abstract class ContainerViewNew {
    * initContainerDom ->
    * @param imageEl the clicked image's element
    * @param bodyEl
-   * @returns
+   * @returns {ImgCto | null} Returns the matched img that can be rendered.
    */
   public initContainerView(imageEl: HTMLImageElement, bodyEl: Element): ImgCto | null {
     this.initContainerDom(bodyEl);
@@ -84,7 +102,7 @@ export abstract class ContainerViewNew {
     if (!matchedImg) {
       return null;
     }
-    matchedImg.targetOriginalImgEl = imageEl;
+    //matchedImg.targetOriginalImgEl = imageEl;
 
     this.lastClickedImg.restoreBorderForLastClickedImg();
     this.initDefaultData(matchedImg, window.getComputedStyle(imageEl));
@@ -92,6 +110,13 @@ export abstract class ContainerViewNew {
     this.addEvents(matchedImg);
     return matchedImg;
   }
+
+  /**
+   * Checks if the current image's status allows it to be displayed.
+   *
+   * @returns {boolean} - Returns `true` if the image can be displayed in a preview, otherwise `false`.
+   */
+  protected abstract checkStatus(): boolean;
 
   protected abstract initContainerDom(bodyEl: Element): void;
 
@@ -103,41 +128,6 @@ export abstract class ContainerViewNew {
 
   public unload() {
     this.lastClickedImg.restoreBorderForLastClickedImg();
-  }
-
-  /* public removeOitContainerView() {
-    this.restoreBorderForLastClickedImg();
-    this.removeGalleryNavbar();
-
-    this.containerContent.modeContainerEl?.remove();
-    this.containerContent.modeContainerEl = null;
-    this.containerContent.imgContainerEl = null;
-
-    this.imgGlobalStatus.dragging = false;
-    this.imgGlobalStatus.popup = false;
-    this.imgGlobalStatus.activeImgZIndex = 0;
-    this.imgGlobalStatus.fullScreen = false;
-    this.imgGlobalStatus.activeImg = null;
-
-    // clear imgList
-    this.containerContent.imgList.length = 0;
-  } */
-
-  protected checkStatus = (): boolean => {
-    // none of popped-up images
-    if (!this.imgGlobalState.popup) {
-      return true;
-    }
-    // Pin mode && Cover mode
-    if (ViewModeEnum.Pin === this.viewMode && this.plugin.settings.pinCoverMode) {
-      return true;
-    }
-    // configured max images > current pop-up images
-    if (this.plugin.getConfiguredPinMaximum() > this.getPopupImgNum()) {
-      return true;
-    }
-    new Notice(t("PIN_MAXIMUM_NOTICE"));
-    return false;
   }
 
   public initDefaultData(matchedImg: ImgCto, targetImgStyle: CSSStyleDeclaration) {
@@ -164,7 +154,7 @@ export abstract class ContainerViewNew {
     matchedImg.scaleY = false;
     matchedImg.fullScreen = false;
 
-    if (!this.imgGlobalState.popup) {
+    if (this.isNoPopupImg()) {
       this.resetClickTimer();
     }
   }
@@ -191,14 +181,14 @@ export abstract class ContainerViewNew {
       }
     }
   }
-  //#endregion
+  //#endregion ##Container View & Init##
 
   //#region ================== Image ========================
   protected updateImgViewElAndList() {
     if (!this.imageDomManager.imgContainerEl) {
       return;
     }
-    const maxImageCount: number = this.plugin.getConfiguredPinMaximum();
+    const maxImageCount: number = this.getMaxPopupImgCount();
     if (this.activeImages.length > maxImageCount) {
       // remove all <oit-img-container> {innerHTML} </div>
       this.imageDomManager.imgContainerEl.innerHTML = '';
@@ -498,15 +488,13 @@ export abstract class ContainerViewNew {
   }
 
   protected mouseenterImgView = (event: MouseEvent) => {
-    // console.log('mouseenterImgView', event, this.imgGlobalStatus.activeImg);
+    // console.log('mouseenterImgView', 'dragging=' + this.imgGlobalState.dragging);
     this.resetClickTimer();
-    event.stopPropagation();
-    event.preventDefault();
     this.getAndUpdateActiveImg(event);
   }
 
   protected mousedownImgView = (event: MouseEvent) => {
-    // console.log('mousedownImgView', event, this.imgGlobalStatus.activeImg, event.button);
+    // console.log('mousedownImgView', event.button);
     event.stopPropagation();
     event.preventDefault();
     const activeImg = this.getAndUpdateActiveImg(event);
@@ -520,9 +508,9 @@ export abstract class ContainerViewNew {
       // 鼠标相对于图片的位置
       activeImg.moveX = activeImg.imgViewEl.offsetLeft - event.clientX;
       activeImg.moveY = activeImg.imgViewEl.offsetTop - event.clientY;
-      // 鼠标按下时持续触发/移动事件
-      activeImg.imgViewEl.onmousemove = this.mousemoveImgView;
+      this.ownerDoc.addEventListener('mousemove', this.mousemoveImgView);
     }
+    this.ownerDoc.addEventListener('mouseup', this.mouseupImgView);
   }
 
   /**
@@ -531,13 +519,15 @@ export abstract class ContainerViewNew {
    * @param offsetSize
    */
   protected mousemoveImgView = (event: MouseEvent | null, offsetSize?: OffsetSizeIto) => {
-    // console.log('mousemoveImgView', event, this.imgGlobalStatus.activeImg);
+    // console.log('mousemoveImgView', event?.button);
     const activeImg = this.imgGlobalState.activeImg;
     if (!activeImg) {
+      console.warn('[oit] mousemoveImgView: found no activeImg!');
       return;
     }
     if (event) {
       if (!this.imgGlobalState.dragging) {
+        console.warn('[oit] mousemoveImgView: no dragging!');
         return;
       }
       // drag via mouse cursor (Both Mode)
@@ -550,34 +540,56 @@ export abstract class ContainerViewNew {
     } else {
       return;
     }
+    const maxTop = - activeImg.curHeight + 30; // move to top
+    const minTop = window.innerHeight - 30; // move to bottom
+    const maxLeft = - activeImg.curWidth + 30; // move to left
+    const minLeft = window.innerWidth - 30; // move to right
+
+    activeImg.top = Math.max(maxTop, Math.min(minTop, activeImg.top));
+    activeImg.left = Math.max(maxLeft, Math.min(minLeft, activeImg.left));
+
+    //console.log('margin-left*top=' + activeImg.left + '*' + activeImg.top, 'image-width*height=' + activeImg.curWidth + '*' + activeImg.curHeight, 'window-inner-width*height=' + window.innerWidth + '*' + window.innerHeight);
+
     // move the image
     activeImg.imgViewEl.style.setProperty('margin-left', activeImg.left + 'px', 'important');
     activeImg.imgViewEl.style.setProperty('margin-top', activeImg.top + 'px', 'important');
   }
 
   protected mouseupImgView = (event: MouseEvent) => {
-    // console.log('mouseupImgView', event, this.imgGlobalStatus.activeImg);
-    this.imgGlobalState.dragging = false;
+    // console.log('mouseupImgView', event.button);
     event.preventDefault();
     event.stopPropagation();
+
+    this.imgGlobalState.dragging = false;
+    this.ownerDoc.removeEventListener('mousemove', this.mousemoveImgView);
+    this.ownerDoc.removeEventListener('mouseup', this.mouseupImgView);
+
     const activeImg = this.imgGlobalState.activeImg;
     if (activeImg) {
-      activeImg.imgViewEl.onmousemove = null;
-      if (2 == event.button) { // right click
-        this.menuView?.show(event, activeImg);
+      // console.log('ownerDoc.removeEventListener: mouseup, mousemove');
+      const targetEl = (<HTMLImageElement>event.target);
+      if (2 == event.button && targetEl?.hasClass(OIT_CLASS.IMG_VIEW)) { // right click
+        this.menuView.show(event, activeImg);
       }
     }
   }
 
   protected mouseleaveImgView = (event: MouseEvent) => {
-    // console.log('mouseleaveImgView', event, this.imgGlobalStatus.activeImg, '>>> set null');
+    console.log('mouseleaveImgView', 'dragging=' + this.imgGlobalState.dragging, '>>> set null', 'event.clientX*Y=' + event.clientX + '*' + event.clientY, 'window-inner-width*height=' + window.innerWidth + '*' + window.innerHeight);
+
+    if (this.imgGlobalState.dragging &&
+      // isInsideObsidian
+      event.clientX >= 0 && event.clientX <= window.innerWidth &&
+      event.clientY >= 0 && event.clientY <= window.innerHeight) {
+      return;
+    }
+
     this.imgGlobalState.dragging = false;
+    this.ownerDoc.removeEventListener('mousemove', this.mousemoveImgView);
+    this.ownerDoc.removeEventListener('mouseup', this.mouseupImgView);
+
     this.resetClickTimer();
-    event.preventDefault();
-    event.stopPropagation();
-    const activeImg = this.imgGlobalState.activeImg;
-    if (activeImg) {
-      activeImg.imgViewEl.onmousemove = null;
+    if (this.imgGlobalState.activeImg) {
       this.setGlobalActiveImg(null); // for pin mode
     }
   }
@@ -609,7 +621,7 @@ export abstract class ContainerViewNew {
   private getAndUpdateActiveImg = (event: MouseEvent | KeyboardEvent): ImgCto | null => {
     const targetEl = (<HTMLImageElement>event.target);
     let index: string | undefined;
-    if (!targetEl || !(index = targetEl.dataset.index)) {
+    if (!targetEl?.hasClass(OIT_CLASS.IMG_VIEW) || !(index = targetEl.dataset.index)) {
       return null;
     }
     const activeImg: ImgCto = this.activeImages[parseInt(index)];

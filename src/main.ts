@@ -31,8 +31,6 @@ export default class ImageToolkitPlugin extends Plugin {
 
     this.addSettingTab(new ImageToolkitSettingTab(this.app, this));
 
-    // await this.initContainer(this.settings.viewMode);
-
     this.refreshViewTrigger();
 
     this.listenOpenedNewWindows();
@@ -106,7 +104,7 @@ export default class ImageToolkitPlugin extends Plugin {
    * 3. refreshViewTrigger(ownerDoc)
    */
   private listenOpenedNewWindows() {
-    // addEventListener for opened new windows
+    // layoutChangeEvent: catch popout windows when 'Open in new Window'.
     this.layoutChangeEvent = this.app.workspace.on('layout-change', () => {
       this.app.workspace.iterateAllLeaves((leaf: WorkspaceLeaf) => {
         if (['markdown', 'image'].includes(leaf.getViewState()?.type)) {
@@ -125,6 +123,7 @@ export default class ImageToolkitPlugin extends Plugin {
       })
     });
 
+    // windowCloseEvent: catch closed windows to remove pop-out containers.
     this.windowCloseEvent = this.app.workspace.on('window-close', (win) => {
       console.log('window-close: data-oit-popout=', win.doc.body.getAttr(ImageToolkitPlugin.POPOUT_WINDOW_EVENT));
       const ownerBody = win.doc.body;
@@ -135,6 +134,7 @@ export default class ImageToolkitPlugin extends Plugin {
       }
     });
 
+    // In case there are already pop-out windows opened.
     this.layoutChangeEvent && this.app.workspace.tryTrigger(this.layoutChangeEvent, []);
   }
 
@@ -160,12 +160,6 @@ export default class ImageToolkitPlugin extends Plugin {
   }
   public isNormalMode(): boolean {
     return ViewModeEnum.Normal === this.getViewMode();
-  }
-
-  public getConfiguredPinMaximum = (): number => {
-    if (this.isPinMode())
-      return this.settings.pinMaximum;
-    return 1;
   }
 
   public getAllContainerViews(): ContainerViewNew[] {

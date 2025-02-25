@@ -117,7 +117,7 @@ export class GalleryNavbarView {
         }
       }
 
-      this.galleryTranslateX = (this.mainContainerView.getDoc().documentElement.clientWidth || this.mainContainerView.getDoc().body.clientWidth) / 2.5 - targetImageIdx * 52;
+      this.galleryTranslateX = (this.mainContainerView.getOwnerDoc().documentElement.clientWidth || this.mainContainerView.getOwnerDoc().body.clientWidth) / 2.5 - targetImageIdx * 52;
       this.galleryListEl.style.transform = 'translateX(' + this.galleryTranslateX + 'px)';
     }
   }
@@ -226,7 +226,7 @@ export class GalleryNavbarView {
       }
     }
     if (imgEL) {
-      const activeImg = this.mainContainerView.getActiveImg();
+      const activeImg = this.mainContainerView.getGlobalActiveImg();
       this.mainContainerView.initDefaultData(activeImg, imgEL.style);
       this.mainContainerView.refreshImg(activeImg, imgEL.src, imgEL.alt || '', imgEL.dataset.index);
     }
