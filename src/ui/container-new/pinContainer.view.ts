@@ -4,7 +4,6 @@ import { ImgCto } from "src/model/container.to";
 import { OIT_CLASS, ViewModeEnum } from "src/conf/constants";
 import { Notice } from "obsidian";
 import { t } from "src/lang/helpers";
-import { MenuView } from "../menuView";
 
 export class PinContainerNew extends ContainerViewNew {
 
@@ -90,6 +89,7 @@ export class PinContainerNew extends ContainerViewNew {
     return null;
   }
 
+  //@Override
   protected openContainer(matchedImg: ImgCto): void {
     if (!this.imageDomManager.modeContainerEl) {
       return;
@@ -99,41 +99,46 @@ export class PinContainerNew extends ContainerViewNew {
       this.imgGlobalState.activeImgZIndex = 0;
       this.activeImages.forEach(img => img.zIndex = 0);
     } else {
-      matchedImg.zIndex = (++this.imgGlobalState.activeImgZIndex);
+      matchedImg.zIndex = ++this.imgGlobalState.activeImgZIndex;
     }
-    matchedImg.imgViewEl.style.zIndex = matchedImg.zIndex.toString();
+    matchedImg.renderZIndex();
     // display 'oit-pin'
-    this.imageDomManager.modeContainerEl.style.display = 'block';
+    this.imageDomManager.displayModeContainerEl();
   }
 
-  protected closeContainer(event?: MouseEvent, activeImg?: ImgCto | null): void {
-    if (event && !activeImg) {
-      // PinContainerView doesn't need click event to hide container for now
+  /**
+   * Close the specified pop-up image:
+   * 1. Press 'Escape': [] from
+   * 2. Click 'toolbar_close': [null, activeImg]
+   *
+   * @param event
+   * @param activeImg
+   * @returns
+   */
+  //@Override
+  protected closeContainer(event: MouseEvent | null, activeImg: ImgCto | null): void {
+    console.log('[D]closeContainer-pin:', event, activeImg, this.imgGlobalState);
+    if (this.closePlayerImgEvent() || !activeImg) {
       return;
     }
-    if (!this.imageDomManager.modeContainerEl) {
-      return;
-    }
-    if (!activeImg && !(activeImg = this.imgGlobalState.activeImg)) {
-      return;
-    }
-    // console.log('closeContainerView', event, activeImg)
-    this.renderImgView(activeImg.imgViewEl, '', '');
-    activeImg.popup = false;
-    activeImg.mtime = 0;
+    this.imgGlobalState.activeImg = null;
+    activeImg.closeImgView();
+    // this.renderImgView(activeImg.imgViewEl, '', '');
 
     if (this.isNoPopupImg()) {
-      this.imageDomManager.modeContainerEl.style.display = 'none'; // hide 'oit-pin'
+      this.imageDomManager.closeModeContainerEl(); // hide 'oit-pin'
       this.imgGlobalState.activeImgZIndex = 0;
       this.activeImages.forEach(img => img.zIndex = 0);
     }
     this.removeEvents(activeImg);
   }
 
+  //@Override
   protected setGlobalActiveImg(imgCto: ImgCto | null): void {
     this.imgGlobalState.activeImg = imgCto;
   }
 
+  //@Override
   protected setActiveImgZIndex = (activeImg: ImgCto) => {
     let isUpdate: boolean = false;
     for (const img of this.activeImages) {
@@ -148,37 +153,70 @@ export class PinContainerNew extends ContainerViewNew {
     }
   }
 
-  protected addEvents(matchedImg: ImgCto): void {
-    // this.imageDomManager.modeContainerEl.addEventListener('keydown', this.triggerKeydown);
-
-    matchedImg.imgViewEl.addEventListener('mouseenter', this.mouseenterImgView);
-    matchedImg.imgViewEl.addEventListener('mouseleave', this.mouseleaveImgView);
-    // drag the image via mouse
-    matchedImg.imgViewEl.addEventListener('mousedown', this.mousedownImgView);
-    // zoom the image via mouse wheel
-    matchedImg.imgViewEl.addEventListener('mousewheel', this.mousewheelImgView, { passive: true });
+  //@Override
+  protected afterRefreshImg(img: ImgCto): void {
+    this.activeImages.forEach(img => img.imgViewEl.removeClass('active'));
+    img.activateImgView();
   }
 
-  protected removeEvents(matchedImg: ImgCto): void {
-    // this.imageDomManager.modeContainerEl.addEventListener('keydown', this.triggerKeydown);
+  //@Override
+  protected addEvents(matchedImg: ImgCto): void {
+    if (this.isNoPopupImg()) {
+      this.imageDomManager.modeContainerEl.addEventListener('keydown', this.triggerKeydownEvent);
+      this.imageDomManager.modeContainerEl.addEventListener('keyup', this.triggerKeyupEvent);
+      this.imageDomManager.modeContainerEl.addEventListener('mousedown', this.mousedownEvent);
+      window.addEventListener('blur', this.blurWindowEvent);
+    }
 
-    matchedImg.imgViewEl.removeEventListener('mouseenter', this.mouseenterImgView);
-    matchedImg.imgViewEl.removeEventListener('mouseleave', this.mouseleaveImgView);
-    // drag the image via mouse
-    matchedImg.imgViewEl.removeEventListener('mousedown', this.mousedownImgView);
+    matchedImg.imgViewEl.addEventListener('mouseenter', this.mouseenterImgViewEvent);
+    matchedImg.imgViewEl.addEventListener('mouseleave', this.mouseleaveImgViewEvent);
     // zoom the image via mouse wheel
-    matchedImg.imgViewEl.removeEventListener('mousewheel', this.mousewheelImgView);
+    matchedImg.imgViewEl.addEventListener('mousewheel', this.mousewheelImgViewEvent, { passive: true });
+  }
+
+  //@Override
+  protected removeEvents(matchedImg: ImgCto): void {
+    if (this.isNoPopupImg()) {
+      this.imageDomManager.modeContainerEl.removeEventListener('keydown', this.triggerKeydownEvent);
+      this.imageDomManager.modeContainerEl.removeEventListener('keyup', this.triggerKeyupEvent);
+      this.imageDomManager.modeContainerEl.removeEventListener('mousedown', this.mousedownEvent);
+      window.removeEventListener('blur', this.blurWindowEvent);
+    }
+
+    matchedImg.imgViewEl.removeEventListener('mouseenter', this.mouseenterImgViewEvent);
+    matchedImg.imgViewEl.removeEventListener('mouseleave', this.mouseleaveImgViewEvent);
+    // zoom the image via mouse wheel
+    matchedImg.imgViewEl.removeEventListener('mousewheel', this.mousewheelImgViewEvent);
   }
 
   protected triggerKeydown = (event: KeyboardEvent) => {
-    // console.info('keydown:', event.key, this.viewMode, this.imgGlobalState);
+    console.info('[D]keydown:', event.key, this.viewMode, this.imgGlobalState);
     if (this.isNoPopupImg()) {
       return;
     }
     if ('Escape' === event.key) {
       // close full screen, hide container view
-      this.imgGlobalState.fullScreen ? this.closePlayerImg() : this.closeContainer();
+      this.closeContainer(null, this.imgGlobalState.activeImg);
     }
+  }
+
+  protected blurWindowEvent = (event: Event) => {
+    console.info('[D]blurWindowEvent-pin:', event);
+    this.imgGlobalState.activeImg = null;
+    this.activeImages.forEach(img => img.imgViewEl.removeClass('active'));
+  }
+
+  protected mousedownEvent = (event: MouseEvent) => {
+    const target = <HTMLElement>event.target;
+    console.log('[D]mousedownDocEvent:', "'" + target?.classList.value + "'", 'dragging=' + this.imgGlobalState.dragging);
+    this.activeImages.forEach(img => img.imgViewEl.removeClass('active'));
+    if (!target?.hasClass(OIT_CLASS.IMG_VIEW)) {
+      this.imgGlobalState.activeImg = null;
+      return;
+    }
+    // Click on the pop-up 'oit-img-view'
+    target.addClass('active');
+    this.mousedownImgViewEvent(event);
   }
 
 }

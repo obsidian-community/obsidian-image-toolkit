@@ -31,8 +31,8 @@ export class ImageUtil {
     }
     tempHeight = tempWidth * realImg.height / realImg.width;
     // cache image info: curWidth, curHeight, realWidth, realHeight, left, top
-    imgCto.left = (windowWidth - tempWidth) / 2;
-    imgCto.top = (windowHeight - tempHeight) / 2;
+    //imgCto.imgX = (windowWidth - tempWidth) / 2;
+    //imgCto.imgY = (windowHeight - tempHeight) / 2;
     imgCto.curWidth = tempWidth;
     imgCto.curHeight = tempHeight;
     imgCto.realWidth = realImg.width;
@@ -83,17 +83,31 @@ export class ImageUtil {
       }
       ratio = 1;
     }
-    const left = targetImgInfo.left + offsetSize.offsetX * (1 - ratio);
-    const top = targetImgInfo.top + offsetSize.offsetY * (1 - ratio);
+    const left = targetImgInfo.imgX + offsetSize.offsetX * (1 - ratio);
+    const top = targetImgInfo.imgY + offsetSize.offsetY * (1 - ratio);
     // cache image info: curWidth, curHeight, left, top
     targetImgInfo.curWidth = newWidth;
     targetImgInfo.curHeight = newHeight;
-    targetImgInfo.left = left;
-    targetImgInfo.top = top;
+    targetImgInfo.imgX = left;
+    targetImgInfo.imgY = top;
     // return { newWidth, left, top };
     return targetImgInfo;
   }
 
+  /**
+   * transform =
+   * - translate(x, y): move
+   * - scale(x, y):
+   *   - scale(2, 1): 宽度变 2 倍，高度不变
+   *   - scale(0.5, 0.5): 整体缩小 50%
+   *   - scale(-1, 1): X 轴镜像翻转（水平翻转
+   *   - scale(1, -1): Y 轴镜像翻转（垂直翻转）
+   *   - scale(-1, -1): 水平+垂直翻转（上下左右颠倒）
+   * - rotate(angle): 旋转
+   *   - rotate(45deg): 顺时针旋转 45°
+   *   - rotate(-90deg): 逆时针旋转 90°
+   * @param targetImgInfo
+   */
   public static transform = (targetImgInfo: ImgCto) => {
     let transform = 'rotate(' + targetImgInfo.rotate + 'deg)';
     if (targetImgInfo.scaleX) {
@@ -103,6 +117,7 @@ export class ImageUtil {
       transform += ' scaleY(-1)'
     }
     targetImgInfo.imgViewEl.style.setProperty('transform', transform);
+    targetImgInfo.imgViewEl.style.transform = ``;
   }
 
   public static rotate = (degree: number, targetImgInfo: ImgInfoIto) => {

@@ -23,6 +23,13 @@ export const OIT_CLASS = {
   MODE_CONTAINER_NORMAL: 'oit-normal',
   MODE_CONTAINER_PIN: 'oit-pin',
 
+  //HEADER: 'oit-header',
+  IMG_HEADER: 'oit-img-header',
+  IMG_INFO: 'oit-image-info',
+  IMG_INDEX: 'oit-img-index',
+  IMG_TITLE: 'oit-img-title',
+  NORMAL_CLOSE: 'oit-normal-close',
+
   // the place for storing images
   IMG_CONTAINER: 'oit-img-container',
   IMG_VIEW: 'oit-img-view',
@@ -30,14 +37,15 @@ export const OIT_CLASS = {
   IMG_TTP: 'oit-img-tip',
 
   IMG_FOOTER: 'oit-img-footer',
-  IMG_TITLE: 'oit-img-title',
   IMG_TITLE_NAME: 'oit-img-title-name',
   IMG_TITLE_INDEX: 'oit-img-title-index',
 
   IMG_TOOLBAR: 'oit-img-toolbar',
 
-  IMG_PLAYER: 'img-player',
-  IMG_FULLSCREEN: 'img-fullscreen',
+  //IMG_PLAYER: 'img-player',
+  IMG_PLAYER: 'oit-img-player',
+  //IMG_FULLSCREEN: 'img-fullscreen',
+  IMG_FULLSCREEN: 'oit-img-fullscreen',
 } as const;
 
 export const ZOOM_FACTOR = 0.8;

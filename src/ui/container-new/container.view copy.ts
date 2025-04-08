@@ -8,6 +8,20 @@ import { ImageUtil } from "src/util/image.util";
 import { OffsetSizeIto } from "src/model/common.to";
 
 export abstract class ContainerViewNew {
+  protected readonly imageDomManager: ImageDomManager;
+
+  protected constructor(
+    protected readonly viewMode: ViewModeEnum,
+    protected readonly plugin: ImageToolkitPlugin,
+    protected readonly ownerDoc: Document,
+    modeContainerEl: HTMLDivElement // 'oit-normal', 'oit-pin': second level under 'oit'
+  ) {
+    this.imageDomManager = new ImageDomManager(modeContainerEl);
+  }
+
+}
+
+export abstract class ContainerViewNew222 {
 
   protected readonly imageDomManager: ImageDomManager;
 
@@ -42,7 +56,7 @@ export abstract class ContainerViewNew {
   protected setGlobalActiveImg(imgCto: ImgCto | null): void {
   }
 
-  //#region ↓↓↓↓↓ activeImages ↓↓↓↓↓
+  //#region ========== activeImages ==========
   public getPopupImgNum(): number {
     return this.activeImages.filter(img => img.popup).length;
   }
@@ -54,17 +68,17 @@ export abstract class ContainerViewNew {
   public isNoPopupImg(): boolean {
     return this.activeImages.every(img => !img.popup);
   }
-  //#endregion ↑↑↑↑↑↑ activeImages ↑↑↑↑↑
+  //#endregion ## activeImages ##
 
 
-  //#region ↓↓↓↓↓ LastClickedImg ↓↓↓↓↓
+  //#region ========== LastClickedImg ==========
   public getLastClickedImgEl(): HTMLImageElement {
     return this.lastClickedImg.getLastClickedImg();
   }
-  //#endregion ↑↑↑↑↑ LastClickedImg ↑↑↑↑↑##
+  //#endregion ## LastClickedImg ##
 
 
-  //#region ↓↓↓↓↓ Container View&Init ↓↓↓↓↓
+  //#region ========== Container View&Init ==========
   /**
    * Display the clicked image (Core Entry)
    * @param imageEl the clicked image's element
@@ -84,6 +98,8 @@ export abstract class ContainerViewNew {
     this.renderGalleryNavbar();
     this.refreshImg(matchedImg, imageEl.src, imageEl.alt);
   }
+
+  protected abstract afterRefreshImg(img: ImgCto): void;
 
   /**
    * initContainerDom ->
@@ -183,8 +199,7 @@ export abstract class ContainerViewNew {
       }
     }
   }
-  //#endregion ↑↑↑↑↑ Container View & Init ↑↑↑↑↑
-
+  //#endregion ##Container View & Init##
 
   //#region ================== Image ========================
   protected updateImgViewElAndList() {
@@ -253,14 +268,25 @@ export abstract class ContainerViewNew {
     }, 40, realImg);
   }
 
-  protected abstract afterRefreshImg(img: ImgCto): void;
-
   protected renderImgTitle = (name?: string, index?: string): void => {
   }
 
-  protected setImgViewPosition(imgZoomSize: ImgCto, rotate?: number) {
+  protected setImgViewPosition = (imgZoomSize: ImgCto, rotate?: number) => {
     imgZoomSize.setWidthImgView();
     imgZoomSize.transformImgView();
+    // const imgViewEl = imgZoomSize.imgViewEl;
+    // if (!imgViewEl) {
+    //   return;
+    // }
+    // if (imgZoomSize) {
+    //   imgViewEl.setAttribute('width', imgZoomSize.curWidth + 'px');
+    //   // imgViewEl.style.transform = `translate(${imgZoomSize.left}px, ${imgZoomSize.top}px)`;
+    //   /* imgViewEl.style.setProperty('margin-top', imgZoomSize.top + 'px', 'important');
+    //   imgViewEl.style.setProperty('margin-left', imgZoomSize.left + 'px', 'important'); */
+    // }
+    // const rotateDeg = rotate ? rotate : 0;
+    // imgViewEl.style.transform = 'rotate(' + rotateDeg + 'deg)';
+    // imgZoomSize.rotate = rotateDeg;
   }
 
   protected renderImgView = (imgViewEl: HTMLImageElement, src: string, alt: string) => {

@@ -313,8 +313,8 @@ export abstract class ContainerView {
     if (!imgViewEl) return;
     if (imgZoomSize) {
       imgViewEl.setAttribute('width', imgZoomSize.curWidth + 'px');
-      imgViewEl.style.setProperty('margin-top', imgZoomSize.top + 'px', 'important');
-      imgViewEl.style.setProperty('margin-left', imgZoomSize.left + 'px', 'important');
+      imgViewEl.style.setProperty('margin-top', imgZoomSize.imgY + 'px', 'important');
+      imgViewEl.style.setProperty('margin-left', imgZoomSize.imgX + 'px', 'important');
     }
     const rotateDeg = rotate ? rotate : 0;
     imgViewEl.style.transform = 'rotate(' + rotateDeg + 'deg)';
@@ -340,8 +340,8 @@ export abstract class ContainerView {
         const ratio = activeImg.curWidth * 100 / activeImg.realWidth;
         const isSingleDigit: boolean = 10 > ratio;
         const width = isSingleDigit ? 20 : 40;
-        const left = activeImg.left + activeImg.curWidth / 2 - width / 2;
-        const top = activeImg.top + activeImg.curHeight / 2 - 10;
+        const left = activeImg.imgX + activeImg.curWidth / 2 - width / 2;
+        const top = activeImg.imgY + activeImg.curHeight / 2 - 10;
 
         this.imgInfo.imgTipEl.style.setProperty("width", width + 'px');
         this.imgInfo.imgTipEl.style.setProperty("font-size", isSingleDigit || 100 >= activeImg.curWidth ? 'xx-small' : 'x-small');
@@ -678,8 +678,8 @@ export abstract class ContainerView {
       this.setActiveImgZIndex(activeImg);
       this.imgGlobalStatus.dragging = true;
       // 鼠标相对于图片的位置
-      activeImg.moveX = activeImg.imgViewEl.offsetLeft - event.clientX;
-      activeImg.moveY = activeImg.imgViewEl.offsetTop - event.clientY;
+      activeImg.imgStartX = activeImg.imgViewEl.offsetLeft - event.clientX;
+      activeImg.imgStartY = activeImg.imgViewEl.offsetTop - event.clientY;
       // 鼠标按下时持续触发/移动事件
       activeImg.imgViewEl.onmousemove = this.mousemoveImgView;
     }
@@ -697,18 +697,18 @@ export abstract class ContainerView {
     if (event) {
       if (!this.imgGlobalStatus.dragging) return;
       // drag via mouse cursor (Both Mode)
-      activeImg.left = event.clientX + activeImg.moveX;
-      activeImg.top = event.clientY + activeImg.moveY;
+      activeImg.imgX = event.clientX + activeImg.imgStartX;
+      activeImg.imgY = event.clientY + activeImg.imgStartY;
     } else if (offsetSize) {
       // move by arrow keys (Normal Mode)
-      activeImg.left += offsetSize.offsetX;
-      activeImg.top += offsetSize.offsetY;
+      activeImg.imgX += offsetSize.offsetX;
+      activeImg.imgY += offsetSize.offsetY;
     } else {
       return;
     }
     // move the image
-    activeImg.imgViewEl.style.setProperty('margin-left', activeImg.left + 'px', 'important');
-    activeImg.imgViewEl.style.setProperty('margin-top', activeImg.top + 'px', 'important');
+    activeImg.imgViewEl.style.setProperty('margin-left', activeImg.imgX + 'px', 'important');
+    activeImg.imgViewEl.style.setProperty('margin-top', activeImg.imgY + 'px', 'important');
   }
 
   protected mouseupImgView = (event: MouseEvent) => {
@@ -793,8 +793,8 @@ export abstract class ContainerView {
     const zoomData: ImgCto = ImageUtil.zoom(ratio, activeImg, offsetSize, actualSize);
     this.renderImgTip(activeImg);
     activeImgViewEl.setAttribute('width', zoomData.curWidth + 'px');
-    activeImgViewEl.style.setProperty('margin-top', zoomData.top + 'px', 'important');
-    activeImgViewEl.style.setProperty('margin-left', zoomData.left + 'px', 'important');
+    activeImgViewEl.style.setProperty('margin-top', zoomData.imgY + 'px', 'important');
+    activeImgViewEl.style.setProperty('margin-left', zoomData.imgX + 'px', 'important');
   }
 
   public clickImgToolbar = (event: MouseEvent, targetElClass?: string, activeImg?: ImgCto): void => {

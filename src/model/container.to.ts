@@ -13,7 +13,7 @@ export class ImgOprStateCto {
 
   fullScreen: boolean = false;
 
-  // being dragged
+  // Currently being clicked/dragged
   activeImg: ImgCto | null;
   activeImgZIndex: number = 0; /*--layer-status-bar*/
 
@@ -60,13 +60,17 @@ export interface ImgInfoIto {
  * ts class object: image content including important html elements
  */
 export class ImageDomManager {
-  modeContainerEl: HTMLDivElement; // 'oit-normal', 'oit-pin': init during constructor of ContainerViewNew
+  //modeContainerEl: HTMLDivElement; // 'oit-normal', 'oit-pin': init during constructor of ContainerViewNew
+
+  imgHeaderEl: HTMLDivElement | null; // 'oit-img-header': only for Normal mode
+  imgIndexEl: HTMLDivElement; // 'oit-img-index'
+  imgTitleEl: HTMLDivElement; // 'oit-img-title'
 
   imgContainerEl: HTMLDivElement; // 'oit-img-container': including <img class='oit-img-view' src='' alt=''>
 
-  imgTitleEl: HTMLDivElement; // 'oit-img-title'
-  imgTitleNameEl: HTMLSpanElement; // 'oit-img-title-name'
-  imgTitleIndexEl: HTMLSpanElement; // 'oit-img-title-index'
+  // imgTitleEl: HTMLDivElement; // 'oit-img-title'
+  // imgTitleNameEl: HTMLSpanElement; // 'oit-img-title-name'
+  // imgTitleIndexEl: HTMLSpanElement; // 'oit-img-title-index'
 
   imgTipEl: HTMLDivElement; // 'oit-img-tip': show the zoom ratio
   imgTipTimeout?: NodeJS.Timeout | null; // timer: control the display time of 'oit-img-tip'
@@ -75,23 +79,30 @@ export class ImageDomManager {
   imgPlayerEl: HTMLDivElement; // 'img-player': including <img class="img-fullscreen" src='' alt=''>
   imgPlayerImgViewEl: HTMLImageElement; // 'img-fullscreen'
 
-  constructor(oitContainerEl: HTMLDivElement) {
-    this.modeContainerEl = oitContainerEl;
+  constructor(readonly modeContainerEl: HTMLDivElement) {
   }
 
-  /* imgList: Array<ImgCto> = new Array<ImgCto>();
-  public getPopupImgNum = (): number => {
-    let num: number = 0;
-    for (const imgCto of this.imgList) {
-      if (imgCto.popup) num++;
-    }
-    return num;
+  /* public activateModeContainerEl() {
+    // The `tabIndex` defines whether an element can receive keyboard focus.
+    // Setting `tabIndex = 0` allows the element to be focusable and included in the tab order of the page.
+    this.modeContainerEl.tabIndex = 0;
+    //  Move focus to `modeContainerEl` <div>
+    this.modeContainerEl.focus();
   } */
+
+  public displayModeContainerEl() {
+    this.modeContainerEl.addClass('active');
+  }
+
+  public closeModeContainerEl() {
+    this.modeContainerEl.removeClass('active');
+  }
+
 }
 
 export class ImgCto {
-  index: number;
-  mtime: number; // modified time
+  index: number; // Confirm upon initialization and do not modify afterwards
+  mtime: number; // open time: will be reset while closed
   popup: boolean = false; // currently whether it's popped-up
 
   //targetOriginalImgEl: HTMLImageElement;
@@ -104,10 +115,13 @@ export class ImgCto {
   curHeight: number = 0;
   realWidth: number = 0; // image's real width
   realHeight: number = 0;
-  left: number = 0; // margin-left
-  top: number = 0; // margin-top
-  moveX: number = 0; // 鼠标相对于图片的位置
-  moveY: number = 0;
+
+  imgStartX: number = 0;
+  imgStartY: number = 0;
+  lastImgX: number = 0;
+  lastImgY: number = 0;
+  imgX: number = 0; // left: current x of the image for transformX
+  imgY: number = 0; // top: current Y of the image for transformY
 
   rotate: number = 0; // rotateDeg
   invertColor: boolean = false;
@@ -137,6 +151,81 @@ export class ImgCto {
       this.refreshImgInterval = null;
     }
   }
+
+  /**
+   * Display `imgViewEl`
+   *
+   * @param imgViewEl
+   * @param src
+   * @param alt
+   * @returns
+   */
+  public displayImgView(src: string, alt: string) {
+    const imgViewEl = this.imgViewEl;
+    if (!imgViewEl) {
+      return;
+    }
+    imgViewEl.src = src;
+    imgViewEl.alt = alt;
+    imgViewEl.hidden = false;
+
+    this.mtime = new Date().getTime();
+  }
+
+  /**
+  * Hide `imgViewEl`
+  *
+  * @param imgViewEl
+  * @returns
+  */
+  public closeImgView() {
+    const imgViewEl = this.imgViewEl;
+    imgViewEl.src = '';
+    imgViewEl.alt = '';
+    imgViewEl.hidden = true;
+
+    //this.mtime = 0;
+    this.popup = false;
+    this.refreshImgInterval = null;
+    this.zIndex = 0;
+    this.curWidth = 0;
+    this.curHeight = 0;
+    this.realWidth = 0;
+    this.realHeight = 0;
+    this.imgX = 0;
+    this.imgY = 0;
+    this.imgStartX = 0;
+    this.imgStartY = 0;
+    this.rotate = 0;
+    this.invertColor = false;
+    this.scaleX = false;
+    this.scaleY = false;
+    this.fullScreen = false;
+  }
+
+  public activateImgView() {
+    console.log('[D]activateImgView ==>');
+    //this.imgViewEl.tabIndex = 0;
+    this.imgViewEl.focus();
+    this.imgViewEl.addClass('active');
+  }
+
+  public deactivateImgView() {
+    this.imgViewEl.removeClass('active');
+  }
+
+  public renderZIndex() {
+    this.imgViewEl.style.zIndex = this.zIndex.toString();
+  }
+
+  public transformImgView() {
+    this.imgViewEl.style.transform = `translate(${this.imgX}px, ${this.imgY}px) scale(${this.scaleX ? -1 : 1}, ${this.scaleY ? -1 : 1}) rotate(${this.rotate}deg)`;
+  }
+
+  public setWidthImgView() {
+    this.imgViewEl.width = this.curWidth;
+  }
+
 }
 
 export class LastClickedImgCto {

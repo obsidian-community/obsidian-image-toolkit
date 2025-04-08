@@ -145,10 +145,10 @@ export class GalleryNavbarView {
         this.galleryNavbarEl.style.setProperty('background-color', this.settings.galleryNavbarDefaultColor);
       }
       // add events
-      this.galleryNavbarEl.addEventListener('mousedown', this.mouseDownGallery);
-      this.galleryNavbarEl.addEventListener('mousemove', this.mouseMoveGallery);
-      this.galleryNavbarEl.addEventListener('mouseup', this.mouseUpGallery);
-      this.galleryNavbarEl.addEventListener('mouseleave', this.mouseLeaveGallery);
+      // this.galleryNavbarEl.addEventListener('mousedown', this.mouseDownGallery);
+      // this.galleryNavbarEl.addEventListener('mousemove', this.mouseMoveGallery);
+      // this.galleryNavbarEl.addEventListener('mouseup', this.mouseUpGallery);
+      // this.galleryNavbarEl.addEventListener('mouseleave', this.mouseLeaveGallery);
     }
     this.galleryNavbarEl.style.setProperty('background-color', this.settings.galleryNavbarDefaultColor);
     if (!this.galleryListEl) {

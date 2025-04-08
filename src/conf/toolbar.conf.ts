@@ -1,7 +1,16 @@
 import { SEPARATOR_SYMBOL } from "./constants";
 
 
-export const TOOLBAR_CONF = [{
+export interface ToolbarIto {
+  title: string;
+  class: string;
+  icon: string;
+  enableToolbarIcon: boolean;
+  enableMenu: boolean;
+  enableHotKey: boolean;
+}
+
+export const TOOLBAR_CONF: ToolbarIto[] = [{
   title: "ZOOM_TO_100",
   class: 'toolbar_zoom_to_100',
   icon: 'zoom-to-100',
@@ -80,6 +89,8 @@ export const TOOLBAR_CONF = [{
   enableHotKey: true
 }, {
   title: SEPARATOR_SYMBOL,
+  class: '',
+  icon: '',
   enableToolbarIcon: false,
   enableMenu: true,
   enableHotKey: false
