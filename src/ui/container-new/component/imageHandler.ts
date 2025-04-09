@@ -1,4 +1,4 @@
-import { ViewModeEnum, ZOOM_FACTOR } from "src/conf/constants";
+import { OIT_CLASS, ViewModeEnum, ZOOM_FACTOR } from "src/conf/constants";
 import { ImageDomManager, ImgCto } from "src/model/container.to";
 import { ImageUtil } from "src/util/image.util";
 
@@ -19,7 +19,7 @@ export abstract class ImageHandlerFactory {
 
 export abstract class ImageHandler {
 
-  public readonly activeImages: Array<ImgCto> = new Array<ImgCto>();
+  // public readonly activeImages: Array<ImgCto> = new Array<ImgCto>();
 
   // key: index ('oit-img-view': data-index), value: ImgCto
   public readonly activeImageMap: Map<string, ImgCto> = new Map<string, ImgCto>();
@@ -29,17 +29,22 @@ export abstract class ImageHandler {
 
   //#region ↓↓↓↓↓ activeImages ↓↓↓↓↓
   public getPopupImgNum(): number {
-    return this.activeImages.filter(img => img.popup).length;
+    // return this.activeImages.filter(img => img.popup).length;
+    return Array.from(this.activeImageMap.values()).filter(img => img.popup).length;
   }
 
   public isAnyPopupImg(): boolean {
-    return this.activeImages.some(img => img.popup);
+    // return this.activeImages.some(img => img.popup);
+    return Array.from(this.activeImageMap.values()).some(img => img.popup);
   }
 
   public isNoPopupImg(): boolean {
-    return this.activeImages.every(img => !img.popup);
+    // return this.activeImages.every(img => !img.popup);
+    return Array.from(this.activeImageMap.values()).every(img => !img.popup);
   }
   //#endregion ↑↑↑↑↑↑ activeImages ↑↑↑↑↑
+
+  public abstract updateImgViewElAndList(): void;
 
   /**
      * it may from:
@@ -138,6 +143,24 @@ export class NormalImageHandler extends ImageHandler {
   }
 
   //@Override
+  public updateImgViewElAndList(): void {
+    const imgContainerEl = this.imageDomManager.imgContainerEl;
+    if (!imgContainerEl || this.activeImageMap.size > 0) {
+      return;
+    }
+    const imgIndex = '0';
+    const curTime = new Date().getTime();
+    const imgViewEl = createEl('img', { cls: OIT_CLASS.IMG_VIEW, parent: imgContainerEl, attr: { tabIndex: 0 } },
+      (el) => {
+        el.hidden = true; // hide 'oit-img-view' for now
+        el.dataset.index = imgIndex; // set data-index
+      }
+    );
+    // this.setImgViewDefaultBackground(imgViewEl);
+    this.activeImageMap.set(imgIndex, new ImgCto(imgIndex, curTime, imgViewEl));
+  }
+
+  //@Override
   protected afterRefreshImg(img: ImgCto): void {
     // this.imageDomManager.activateModeContainerEl();
     img.activateImgView();
@@ -162,8 +185,40 @@ export class PinImageHandler extends ImageHandler {
   }
 
   //@Override
+  public updateImgViewElAndList(): void {
+    const imgContainerEl = this.imageDomManager.imgContainerEl;
+    if (!imgContainerEl) {
+      return;
+    }
+    // remove popup is false item in this.activeImageMap
+    for (const [key, value] of this.activeImageMap.entries()) {
+      if (!value.popup) {
+        this.activeImageMap.delete(key);
+      }
+    }
+
+
+
+    if (this.activeImageMap.size > 0) {
+
+    }
+
+    const imgIndex = '0';
+    const curTime = new Date().getTime();
+    const imgViewEl = createEl('img', { cls: OIT_CLASS.IMG_VIEW, parent: imgContainerEl, attr: { tabIndex: 0 } },
+      (el) => {
+        el.hidden = true; // hide 'oit-img-view' for now
+        el.dataset.index = imgIndex; // set data-index
+      }
+    );
+    // this.setImgViewDefaultBackground(imgViewEl);
+    this.activeImageMap.set(imgIndex, new ImgCto(imgIndex, curTime, imgViewEl));
+  }
+
+  //@Override
   protected afterRefreshImg(img: ImgCto): void {
-    this.activeImages.forEach(img => img.imgViewEl.removeClass('active'));
+    // this.activeImages.forEach(img => img.imgViewEl.removeClass('active'));
+    Array.from(this.activeImageMap.values()).forEach(img => img.imgViewEl.removeClass('active'));
     img.activateImgView();
   }
 

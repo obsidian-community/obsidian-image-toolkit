@@ -69,10 +69,6 @@ export class ImageDomManager {
 
   imgContainerEl: HTMLDivElement; // 'oit-img-container': including <img class='oit-img-view' src='' alt=''>
 
-  // imgTitleEl: HTMLDivElement; // 'oit-img-title'
-  // imgTitleNameEl: HTMLSpanElement; // 'oit-img-title-name'
-  // imgTitleIndexEl: HTMLSpanElement; // 'oit-img-title-index'
-
   imgTipEl: HTMLDivElement; // 'oit-img-tip': show the zoom ratio
   imgTipTimeout?: NodeJS.Timeout | null; // timer: control the display time of 'oit-img-tip'
 
@@ -103,7 +99,7 @@ export class ImageDomManager {
 
 export class ImgCto {
   // index: number; // Confirm upon initialization and do not modify afterwards
-  index: number; // Confirm upon initialization and do not modify afterwards
+  index: string; // Confirm upon initialization and do not modify afterwards
   mtime: number; // open time: will be reset while closed
   popup: boolean = false; // currently whether it's popped-up
 
@@ -143,7 +139,7 @@ export class ImgCto {
     borderColor: ''
   }
 
-  constructor(index: number, mtime: number, imgViewEl: HTMLImageElement) {
+  constructor(index: string, mtime: number, imgViewEl: HTMLImageElement) {
     this.index = index;
     this.mtime = mtime;
     this.imgViewEl = imgViewEl;

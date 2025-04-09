@@ -59,7 +59,7 @@ export class NormalContainerNew extends ContainerViewNew {
       });
       // 2.2. <div class="oit-img-container"> `<img class="oit-img-view" src="" alt="">` </div>
       // create `oit-img-view` <img> element and set activeImages
-      this.updateImgViewElAndList();
+      this.imageHandler.updateImgViewElAndList();
       // 2.3. oit-next-button:
       const nextBtn = createDiv({ cls: ['oit-nav-button', 'oit-next-button'], parent: this.imageDomManager.imgContainerEl });
       nextBtn.addEventListener('click', (event: MouseEvent) => {
