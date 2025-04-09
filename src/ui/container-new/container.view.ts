@@ -1,17 +1,17 @@
-import { Notice } from "obsidian";
-import { t } from "src/lang/helpers";
 import ImageToolkitPlugin from "src/main";
 import { ImgCto, ImageDomManager, ImgOprStateCto, LastClickedImgCto } from "src/model/container.to";
 import { MenuView } from "../menuView";
 import { IMG_DEFAULT_BACKGROUND_COLOR, IMG_FULL_SCREEN_MODE, OIT_CLASS, ViewModeEnum } from "src/conf/constants";
 import { ImageUtil } from "src/util/image.util";
 import { OffsetSizeIto } from "src/model/common.to";
+import { ImageHandler, ImageHandlerFactory } from "./component/imageHandler";
+
 
 export abstract class ContainerViewNew {
 
-  protected readonly imageDomManager: ImageDomManager;
+  protected readonly imageHandler: ImageHandler;
 
-  protected readonly activeImages: Array<ImgCto> = new Array<ImgCto>();
+  protected readonly imageDomManager: ImageDomManager;
 
   protected readonly lastClickedImg: LastClickedImgCto = new LastClickedImgCto();
 
@@ -23,14 +23,15 @@ export abstract class ContainerViewNew {
   protected constructor(
     protected readonly viewMode: ViewModeEnum,
     protected readonly plugin: ImageToolkitPlugin,
-    protected readonly ownerDoc: Document,
+    ownerDoc: Document,
     modeContainerEl: HTMLDivElement // 'oit-normal', 'oit-pin': second level under 'oit'
   ) {
-    this.imageDomManager = new ImageDomManager(modeContainerEl);
+    this.imageDomManager = new ImageDomManager(ownerDoc, modeContainerEl);
+    this.imageHandler = ImageHandlerFactory.createImageHandler(viewMode, this.imageDomManager);
   }
 
   public getOwnerDoc(): Document {
-    return this.ownerDoc;
+    return this.imageDomManager.ownerDoc;
   }
 
   protected abstract getMaxPopupImgCount(): number;
@@ -42,39 +43,35 @@ export abstract class ContainerViewNew {
   protected setGlobalActiveImg(imgCto: ImgCto | null): void {
   }
 
-  //#region ↓↓↓↓↓ activeImages ↓↓↓↓↓
-  public getPopupImgNum(): number {
-    return this.activeImages.filter(img => img.popup).length;
-  }
-
-  public isAnyPopupImg(): boolean {
-    return this.activeImages.some(img => img.popup);
-  }
-
-  public isNoPopupImg(): boolean {
-    return this.activeImages.every(img => !img.popup);
-  }
-  //#endregion ↑↑↑↑↑↑ activeImages ↑↑↑↑↑
-
-
   //#region ↓↓↓↓↓ LastClickedImg ↓↓↓↓↓
   public getLastClickedImgEl(): HTMLImageElement {
     return this.lastClickedImg.getLastClickedImg();
   }
-  //#endregion ↑↑↑↑↑ LastClickedImg ↑↑↑↑↑##
+  //#endregion ↑↑↑↑↑ LastClickedImg ↑↑↑↑↑
 
 
   //#region ↓↓↓↓↓ Container View&Init ↓↓↓↓↓
   /**
-   * Display the clicked image (Core Entry)
+   * Display the clicked image (Core Entry):
+   * 1. checkImageCanPopup()
+   * 2. initContainer():
+   *   2.1. initContainerDom(): init container dom and bind events
+   *   2.2. getMatchedImg(): get the matched img that can be rendered
+   *   2.3. addBorderForLastClickedImg(): add border for the last clicked image
+   *   2.4. addEvents(): add events for the matched img
+   * 3. set global active img
+   * 4. openContainer(): -> displayModeContainerEl()
+   * 5. renderGalleryNavbar(): only for Normal mode
+   * 6. refreshImg()
+   *
    * @param imageEl the clicked image's element
    */
   public displayImage(imageEl: HTMLImageElement) {
-    console.log('[D]displayImage:', imageEl, this.imgGlobalState);
-    if (!this.checkStatus()) {
+    console.log('[D]displayImage:', imageEl);
+    if (!this.checkImageCanPopup()) {
       return;
     }
-    const matchedImg = this.initContainer(imageEl, this.ownerDoc.body);
+    const matchedImg = this.initContainer(imageEl);
     if (!matchedImg) {
       console.warn('[oit] Found no matched image!', imageEl);
       return;
@@ -82,7 +79,7 @@ export abstract class ContainerViewNew {
     this.imgGlobalState.activeImg = matchedImg;
     this.openContainer(matchedImg);
     this.renderGalleryNavbar();
-    this.refreshImg(matchedImg, imageEl.src, imageEl.alt);
+    this.imageHandler.refreshImg(matchedImg);
   }
 
   /**
@@ -91,8 +88,8 @@ export abstract class ContainerViewNew {
    * @param bodyEl
    * @returns {ImgCto | null} Returns the matched img that can be rendered.
    */
-  public initContainer(imageEl: HTMLImageElement, bodyEl: Element): ImgCto | null {
-    this.initContainerDom(bodyEl);
+  public initContainer(imageEl: HTMLImageElement): ImgCto | null {
+    this.initContainerDom();
     const matchedImg = this.getMatchedImg();
     if (!matchedImg) {
       return null;
@@ -102,7 +99,12 @@ export abstract class ContainerViewNew {
     this.lastClickedImg.restoreBorderForLastClickedImg();
     this.initDefaultData(matchedImg, window.getComputedStyle(imageEl));
     this.addBorderForLastClickedImg(imageEl);
+
     this.addEvents(matchedImg);
+
+    matchedImg.alt = imageEl.alt;
+    matchedImg.src = imageEl.src;
+
     return matchedImg;
   }
 
@@ -111,9 +113,9 @@ export abstract class ContainerViewNew {
    *
    * @returns {boolean} - Returns `true` if the image can be displayed in a preview, otherwise `false`.
    */
-  protected abstract checkStatus(): boolean;
+  protected abstract checkImageCanPopup(): boolean;
 
-  protected abstract initContainerDom(bodyEl: Element): void;
+  protected abstract initContainerDom(): void;
 
   protected abstract getMatchedImg(): ImgCto | null;
 
@@ -156,7 +158,7 @@ export abstract class ContainerViewNew {
     matchedImg.scaleY = false;
     matchedImg.fullScreen = false;
 
-    if (this.isNoPopupImg()) {
+    if (this.imageHandler.isNoPopupImg()) {
       this.resetClickTimer();
     }
   }
@@ -192,14 +194,15 @@ export abstract class ContainerViewNew {
       return;
     }
     const maxImageCount: number = this.getMaxPopupImgCount();
-    if (this.activeImages.length > maxImageCount) {
+    const activeImages = this.imageHandler.activeImages;
+    if (activeImages.length > maxImageCount) {
       // remove all <oit-img-container> {innerHTML} </div>
       this.imageDomManager.imgContainerEl.innerHTML = '';
       // clear activeImages
-      this.activeImages.length = 0;
+      activeImages.length = 0;
     }
     const curTime = new Date().getTime();
-    for (let i = this.activeImages.length; i < maxImageCount; i++) {
+    for (let i = activeImages.length; i < maxImageCount; i++) {
       // <div class="oit-img-container"> `<img class='oit-img-view' data-index='0' src='' alt=''>` </div>
       const imgViewEl = createEl('img', { cls: OIT_CLASS.IMG_VIEW, parent: this.imageDomManager.imgContainerEl, attr: { tabIndex: 0 } },
         (el) => {
@@ -208,70 +211,7 @@ export abstract class ContainerViewNew {
         }
       );
       this.setImgViewDefaultBackground(imgViewEl);
-      this.activeImages.push(new ImgCto(i, curTime, imgViewEl));
-    }
-  }
-
-  /**
-   * it may from: renderContainerView(), switch GalleryNavbarView, click toolbar_refresh
-   * @param img
-   * @param imgSrc
-   * @param imgAlt
-   * @param imgTitleIndex e.g. <span class="oit-img-title-index">[3/6]</span>
-   */
-  public refreshImg(img: ImgCto, imgSrc?: string, imgAlt?: string, imgTitleIndex?: string) {
-    if (!img) {
-      return;
-    }
-    if (!imgSrc) {
-      imgSrc = img.imgViewEl.src;
-    }
-    if (!imgAlt) {
-      imgAlt = img.imgViewEl.alt;
-    }
-    this.renderImgTitle(imgAlt, imgTitleIndex);
-
-    if (!imgSrc) {
-      return
-    }
-
-    img.resetRefreshImgInterval();
-    const realImg = new Image();
-    realImg.src = imgSrc;
-    img.refreshImgInterval = setInterval((realImg) => {
-      if (realImg.width > 0 || realImg.height > 0) {
-        img.resetRefreshImgInterval();
-        this.setImgViewPosition(ImageUtil.calculateImgZoomSize(realImg, img,
-          this.ownerDoc.body.clientWidth, this.ownerDoc.body.clientHeight), 0);
-        img.displayImgView(imgSrc, imgAlt);
-        this.renderImgTip(img);
-        //img.imgViewEl.style.transform = img.defaultImgStyle.transform;
-        img.imgViewEl.style.filter = img.defaultImgStyle.filter;
-        img.imgViewEl.style.mixBlendMode = img.defaultImgStyle.mixBlendMode;
-        this.afterRefreshImg(img);
-      }
-    }, 40, realImg);
-  }
-
-  protected abstract afterRefreshImg(img: ImgCto): void;
-
-  protected renderImgTitle = (name?: string, index?: string): void => {
-  }
-
-  protected setImgViewPosition(imgZoomSize: ImgCto, rotate?: number) {
-    imgZoomSize.setWidthImgView();
-    imgZoomSize.transformImgView();
-  }
-
-  protected renderImgView = (imgViewEl: HTMLImageElement, src: string, alt: string) => {
-    if (!imgViewEl) {
-      return;
-    }
-    imgViewEl.src = src;
-    imgViewEl.alt = alt;
-    imgViewEl.hidden = !src && !alt;
-    if (imgViewEl.hidden) {
-
+      activeImages.push(new ImgCto(i, curTime, imgViewEl));
     }
   }
 
@@ -308,7 +248,7 @@ export abstract class ContainerViewNew {
   }
 
   public setImgViewDefaultBackgroundForImgList() {
-    for (const imgCto of this.activeImages) {
+    for (const imgCto of this.imageHandler.activeImages) {
       this.setImgViewDefaultBackground(imgCto.imgViewEl);
     }
   }
@@ -352,8 +292,11 @@ export abstract class ContainerViewNew {
     this.imageDomManager.imgPlayerEl.style.zIndex = (this.imgGlobalState.activeImgZIndex + 10).toString();
     this.imageDomManager.imgPlayerEl.addEventListener('click', this.closePlayerImgEvent);
 
-    const windowWidth = this.ownerDoc.documentElement.clientWidth || this.ownerDoc.body.clientWidth;
-    const windowHeight = this.ownerDoc.documentElement.clientHeight || this.ownerDoc.body.clientHeight;
+    // const windowWidth = this.ownerDoc.documentElement.clientWidth || this.ownerDoc.body.clientWidth;
+    // const windowHeight = this.ownerDoc.documentElement.clientHeight || this.ownerDoc.body.clientHeight;
+    const windowWidth = this.imageDomManager.ownerDoc.documentElement.clientWidth || this.imageDomManager.ownerDoc.body.clientWidth;
+    const windowHeight = this.imageDomManager.ownerDoc.documentElement.clientHeight || this.imageDomManager.ownerDoc.body.clientHeight;
+
     let newWidth, newHeight;
     let top = 0, left = 0;
     if (IMG_FULL_SCREEN_MODE.STRETCH == this.plugin.settings.imgFullScreenMode) {
@@ -424,6 +367,7 @@ export abstract class ContainerViewNew {
     // this.imageDomManager.activateModeContainerEl();
 
     return true;
+
   }
   //#endregion #full screen#
 
@@ -461,7 +405,7 @@ export abstract class ContainerViewNew {
    */
   protected triggerKeydownEvent = (event: KeyboardEvent) => {
     //console.info('[D]keydown:', event.key, this.imgGlobalState);
-    if (this.isNoPopupImg()) {
+    if (this.imageHandler.isNoPopupImg()) {
       return;
     }
     if ('Escape' === event.key) {
@@ -509,7 +453,7 @@ export abstract class ContainerViewNew {
 
   protected triggerKeyupEvent = (event: KeyboardEvent) => {
     //console.log('[D]keyup:', event.key, this.viewMode);
-    if (this.imgGlobalState.fullScreen || this.isNoPopupImg()) {
+    if (this.imgGlobalState.fullScreen || this.imageHandler.isNoPopupImg()) {
       return;
     }
     switch (event.key) {
@@ -535,7 +479,7 @@ export abstract class ContainerViewNew {
   }
 
   protected moveImgViewByHotkey(event: KeyboardEvent, orientation: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'UP_LEFT' | 'UP_RIGHT' | 'DOWN_LEFT' | 'DOWN_RIGHT') {
-    if (!orientation || this.isNoPopupImg()
+    if (!orientation || this.imageHandler.isNoPopupImg()
       || !this.checkHotkeySettings(event, this.plugin.settings.moveTheImageHotkey)) {
       return;
     }
@@ -607,11 +551,10 @@ export abstract class ContainerViewNew {
       activeImg.lastImgY = event.clientY;
 
       activeImg.imgViewEl.addClass('dragging');
-      //activeImg.imgViewEl.style.cursor = 'grabbing';
 
-      this.ownerDoc.addEventListener('mousemove', this.mousemoveImgViewEvent);
+      this.imageDomManager.ownerDoc.addEventListener('mousemove', this.mousemoveImgViewEvent);
     }
-    this.ownerDoc.addEventListener('mouseup', this.mouseupImgViewEvent);
+    this.imageDomManager.ownerDoc.addEventListener('mouseup', this.mouseupImgViewEvent);
   }
 
   /**
@@ -646,13 +589,13 @@ export abstract class ContainerViewNew {
     } else {
       return;
     }
-    const maxTop = - activeImg.curHeight + 30; // move to top
-    const minTop = window.innerHeight - 30; // move to bottom
-    const maxLeft = - activeImg.curWidth + 30; // move to left
-    const minLeft = window.innerWidth - 30; // move to right
+    // const maxTop = - activeImg.curHeight + 30; // move to top
+    // const minTop = window.innerHeight - 30; // move to bottom
+    // const maxLeft = - activeImg.curWidth + 30; // move to left
+    // const minLeft = window.innerWidth - 30; // move to right
 
-    // activeImg.imgY = Math.max(maxTop, Math.min(minTop, activeImg.imgY));
     // activeImg.imgX = Math.max(maxLeft, Math.min(minLeft, activeImg.imgX));
+    // activeImg.imgY = Math.max(maxTop, Math.min(minTop, activeImg.imgY));
 
     //console.log('[D]margin-left*top=' + activeImg.left + '*' + activeImg.top, 'image-width*height=' + activeImg.curWidth + '*' + activeImg.curHeight, 'window-inner-width*height=' + window.innerWidth + '*' + window.innerHeight);
 
@@ -668,8 +611,8 @@ export abstract class ContainerViewNew {
     event.stopPropagation();
 
     this.imgGlobalState.dragging = false;
-    this.ownerDoc.removeEventListener('mousemove', this.mousemoveImgViewEvent);
-    this.ownerDoc.removeEventListener('mouseup', this.mouseupImgViewEvent);
+    this.imageDomManager.ownerDoc.removeEventListener('mousemove', this.mousemoveImgViewEvent);
+    this.imageDomManager.ownerDoc.removeEventListener('mouseup', this.mouseupImgViewEvent);
 
     const activeImg = this.imgGlobalState.activeImg;
     if (activeImg) {
@@ -695,8 +638,8 @@ export abstract class ContainerViewNew {
     }
 
     this.imgGlobalState.dragging = false;
-    this.ownerDoc.removeEventListener('mousemove', this.mousemoveImgViewEvent);
-    this.ownerDoc.removeEventListener('mouseup', this.mouseupImgViewEvent);
+    this.imageDomManager.ownerDoc.removeEventListener('mousemove', this.mousemoveImgViewEvent);
+    this.imageDomManager.ownerDoc.removeEventListener('mouseup', this.mouseupImgViewEvent);
 
     this.resetClickTimer();
     /* if (this.imgGlobalState.activeImg) {
@@ -734,7 +677,7 @@ export abstract class ContainerViewNew {
     if (!targetEl?.hasClass(OIT_CLASS.IMG_VIEW) || !(index = targetEl.dataset.index)) {
       return null;
     }
-    const activeImg: ImgCto = this.activeImages[parseInt(index)];
+    const activeImg: ImgCto = this.imageHandler.activeImages[parseInt(index)];
     if (activeImg && (!this.imgGlobalState.activeImg || activeImg.index !== this.imgGlobalState.activeImg.index)) {
       this.setGlobalActiveImg(activeImg); // update activeImg
     }
@@ -744,7 +687,7 @@ export abstract class ContainerViewNew {
 
   protected mousewheelImgViewEvent = (event: WheelEvent) => {
     console.log('[D]mousewheelImgView', event.deltaMode, event.deltaX, event.deltaY, event.deltaZ);
-    // event.preventDefault();
+    event.preventDefault();
     event.stopPropagation();
     // @ts-ignore
     this.zoomAndRender(0 < event.wheelDelta ? 0.1 : -0.1, event);
@@ -814,7 +757,7 @@ export abstract class ContainerViewNew {
         this.showPlayerImg(activeImg);
         break;
       case 'toolbar_refresh':
-        this.refreshImg(activeImg);
+        this.imageHandler.refreshImg(activeImg);
         break;
       case 'toolbar_rotate_left':
         activeImg.rotate -= 90;

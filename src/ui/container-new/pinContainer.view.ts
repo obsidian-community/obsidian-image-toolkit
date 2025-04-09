@@ -18,7 +18,7 @@ export class PinContainerNew extends ContainerViewNew {
   }
 
   //@Override
-  protected checkStatus(): boolean {
+  protected checkImageCanPopup(): boolean {
     // none of popped-up images
     if (this.isNoPopupImg()) {
       return true;
@@ -36,11 +36,11 @@ export class PinContainerNew extends ContainerViewNew {
   }
 
   //@Override
-  protected initContainerDom(bodyEl: Element): void {
+  protected initContainerDom(): void {
     let modeContainerEl = this.imageDomManager.modeContainerEl;
     if (!modeContainerEl) {
       // 0. <div class="oit-pin"> ... <div>
-      modeContainerEl = createDiv({ cls: OIT_CLASS.MODE_CONTAINER_PIN, parent: bodyEl });
+      modeContainerEl = createDiv({ cls: OIT_CLASS.MODE_CONTAINER_PIN, parent: modeContainerEl });
       this.imageDomManager.modeContainerEl = modeContainerEl;
     }
 
@@ -151,12 +151,6 @@ export class PinContainerNew extends ContainerViewNew {
       activeImg.zIndex = (++this.imgGlobalState.activeImgZIndex);
       activeImg.imgViewEl.style.zIndex = `${activeImg.zIndex}`;
     }
-  }
-
-  //@Override
-  protected afterRefreshImg(img: ImgCto): void {
-    this.activeImages.forEach(img => img.imgViewEl.removeClass('active'));
-    img.activateImgView();
   }
 
   //@Override

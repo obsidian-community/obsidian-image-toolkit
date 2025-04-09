@@ -103,7 +103,7 @@ export class GalleryNavbarView {
     }
 
     const realTotalNum = imgListEl.length;
-    this.mainContainerView.renderImgTitle(null, '[' + targetRealIdx + '/' + realTotalNum + ']');
+    this.mainContainerView.renderImgInfo(null, '[' + targetRealIdx + '/' + realTotalNum + ']');
     imgListEl.forEach((value, index) => {
       value.dataset.index = '[' + (index + 1) + '/' + realTotalNum + ']';
     });

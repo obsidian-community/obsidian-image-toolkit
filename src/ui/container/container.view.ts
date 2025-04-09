@@ -678,8 +678,8 @@ export abstract class ContainerView {
       this.setActiveImgZIndex(activeImg);
       this.imgGlobalStatus.dragging = true;
       // 鼠标相对于图片的位置
-      activeImg.imgStartX = activeImg.imgViewEl.offsetLeft - event.clientX;
-      activeImg.imgStartY = activeImg.imgViewEl.offsetTop - event.clientY;
+      //activeImg.imgStartX = activeImg.imgViewEl.offsetLeft - event.clientX;
+      //activeImg.imgStartY = activeImg.imgViewEl.offsetTop - event.clientY;
       // 鼠标按下时持续触发/移动事件
       activeImg.imgViewEl.onmousemove = this.mousemoveImgView;
     }
@@ -697,8 +697,8 @@ export abstract class ContainerView {
     if (event) {
       if (!this.imgGlobalStatus.dragging) return;
       // drag via mouse cursor (Both Mode)
-      activeImg.imgX = event.clientX + activeImg.imgStartX;
-      activeImg.imgY = event.clientY + activeImg.imgStartY;
+      //activeImg.imgX = event.clientX + activeImg.imgStartX;
+      //activeImg.imgY = event.clientY + activeImg.imgStartY;
     } else if (offsetSize) {
       // move by arrow keys (Normal Mode)
       activeImg.imgX += offsetSize.offsetX;

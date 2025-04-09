@@ -60,6 +60,7 @@ export interface ImgInfoIto {
  * ts class object: image content including important html elements
  */
 export class ImageDomManager {
+  //ownerDoc: Document;
   //modeContainerEl: HTMLDivElement; // 'oit-normal', 'oit-pin': init during constructor of ContainerViewNew
 
   imgHeaderEl: HTMLDivElement | null; // 'oit-img-header': only for Normal mode
@@ -79,7 +80,7 @@ export class ImageDomManager {
   imgPlayerEl: HTMLDivElement; // 'img-player': including <img class="img-fullscreen" src='' alt=''>
   imgPlayerImgViewEl: HTMLImageElement; // 'img-fullscreen'
 
-  constructor(readonly modeContainerEl: HTMLDivElement) {
+  constructor(readonly ownerDoc: Document, readonly modeContainerEl: HTMLDivElement) {
   }
 
   /* public activateModeContainerEl() {
@@ -101,6 +102,7 @@ export class ImageDomManager {
 }
 
 export class ImgCto {
+  // index: number; // Confirm upon initialization and do not modify afterwards
   index: number; // Confirm upon initialization and do not modify afterwards
   mtime: number; // open time: will be reset while closed
   popup: boolean = false; // currently whether it's popped-up
@@ -108,7 +110,11 @@ export class ImgCto {
   //targetOriginalImgEl: HTMLImageElement;
 
   imgViewEl: HTMLImageElement; // 'oit-img-view'
+  alt: string;
+  src: string;
+
   refreshImgInterval: NodeJS.Timeout | null;
+
   zIndex: number = 0;
 
   curWidth: number = 0; // image's current width
@@ -116,10 +122,8 @@ export class ImgCto {
   realWidth: number = 0; // image's real width
   realHeight: number = 0;
 
-  imgStartX: number = 0;
-  imgStartY: number = 0;
-  lastImgX: number = 0;
-  lastImgY: number = 0;
+  lastImgX: number = 0; // event.clientX
+  lastImgY: number = 0; // event.clientY
   imgX: number = 0; // left: current x of the image for transformX
   imgY: number = 0; // top: current Y of the image for transformY
 
@@ -160,16 +164,15 @@ export class ImgCto {
    * @param alt
    * @returns
    */
-  public displayImgView(src: string, alt: string) {
+  public displayImgView() {
     const imgViewEl = this.imgViewEl;
     if (!imgViewEl) {
       return;
     }
-    imgViewEl.src = src;
-    imgViewEl.alt = alt;
-    imgViewEl.hidden = false;
-
     this.mtime = new Date().getTime();
+    imgViewEl.src = this.src;
+    imgViewEl.alt = this.alt;
+    imgViewEl.hidden = false; // !img.src && !img.alt;
   }
 
   /**
@@ -194,8 +197,8 @@ export class ImgCto {
     this.realHeight = 0;
     this.imgX = 0;
     this.imgY = 0;
-    this.imgStartX = 0;
-    this.imgStartY = 0;
+    //this.imgStartX = 0;
+    //this.imgStartY = 0;
     this.rotate = 0;
     this.invertColor = false;
     this.scaleX = false;

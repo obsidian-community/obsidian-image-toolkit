@@ -24,13 +24,13 @@ export class NormalContainerNew extends ContainerViewNew {
   }
 
   //@Override
-  protected checkStatus(): boolean {
-    // none of popped-up images
-    return this.isNoPopupImg();
+  protected checkImageCanPopup(): boolean {
+    // In Normal mode, only one image can be popped up at a time。
+    return this.imageHandler.isNoPopupImg();
   }
 
   //@Override
-  protected initContainerDom(bodyEl: Element): void {
+  protected initContainerDom(): void {
     // oit-normal
     const modeContainerEl = this.imageDomManager.modeContainerEl;
     if (!this.imageDomManager.imgHeaderEl) {
@@ -91,12 +91,13 @@ export class NormalContainerNew extends ContainerViewNew {
           this.clickToolbar(null, toolbar.class, this.imgGlobalState.activeImg);
         });
       }
-      // add event: for
-      //imgToolbarUlEL.addEventListener('click', this.clickToolbar);
 
       // 4.2. oit-gallery-navbar:
       const galleryNavbarEl = createDiv({ cls: 'oit-gallery-navbar', parent: this.imageDomManager.imgFooterEl });
       const galleryToggleEl = createDiv({ cls: 'oit-gallery-toggle', parent: galleryNavbarEl });
+      galleryToggleEl.addEventListener('click', (event: MouseEvent) => {
+        galleryNavbarEl.classList.toggle('collapsed');
+      });
       const galleryListContainerEl = createDiv({ cls: 'oit-gallery-list-container', parent: galleryNavbarEl });
       const galleryListUlEl = createEl('ul', { cls: 'oit-gallery-list', parent: galleryListContainerEl });
       createEl('img', { cls: 'oit-gallery-img', attr: { src: 'http://uigarage.net/wp-content/uploads/2023/08/onboarding_.mov_P0BAQa7.mp4975e.jpg' }, parent: createEl('li', { parent: galleryListUlEl }) });
@@ -116,10 +117,10 @@ export class NormalContainerNew extends ContainerViewNew {
 
   //@Override
   protected getMatchedImg(): ImgCto {
-    if (0 === this.activeImages.length) {
+    if (0 === this.imageHandler.activeImages.length) {
       this.updateImgViewElAndList();
     }
-    return this.activeImages[0];
+    return this.imageHandler.activeImages[0];
   }
 
   //@Override
@@ -156,7 +157,7 @@ export class NormalContainerNew extends ContainerViewNew {
       this.imgGlobalState.activeImg = null;
       activeImg.closeImgView();
       this.imageDomManager.closeModeContainerEl(); // hide 'oit-normal'
-      this.renderImgTitle('', '');
+      this.renderImgInfo('', '');
       this.removeEvents(activeImg);
     }
     if (this.plugin.settings.galleryNavbarToggle && this.galleryNavbarView) {
@@ -165,19 +166,13 @@ export class NormalContainerNew extends ContainerViewNew {
   }
 
   //@Override
-  protected renderImgTitle = (name?: string, index?: string): void => {
+  protected renderImgInfo = (name?: string, index?: string): void => {
     if (undefined !== name && null !== name) {
       this.imageDomManager.imgTitleEl.setText(name);
     }
     if (undefined !== index && null !== index) {
       this.imageDomManager.imgIndexEl.setText(' ' + index);
     }
-  }
-
-  //@Override
-  protected afterRefreshImg(img: ImgCto): void {
-    // this.imageDomManager.activateModeContainerEl();
-    img.activateImgView();
   }
 
   //@Override

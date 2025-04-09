@@ -1,8 +1,8 @@
 body {
   --layer-oit-normal: 2000;
   --layer-oit-pin: 1000;
-  --layer-oit-notice: 2010;
-  --layer-menu: 2005;
+  --layer-oit-notice: 3000;
+  --layer-menu: 2050;
 }
 
 .menu {
@@ -65,28 +65,11 @@ body {
   justify-content: space-between;
   padding: 10px 20px;
   background-color: rgba(0, 0, 0, 0.5);
-  /* position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60px;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
-  color: white;
-  z-index: 10; */
 }
 
 .oit-normal .oit-image-info {
   display: flex;
   gap: 20px;
-
-  /* display: flex;
-  align-items: center;
-  gap: 15px;
-  max-width: 70%; */
 }
 
 .oit-normal .oit-image-info .oit-img-index {
@@ -162,34 +145,14 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-
-  /* flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  min-height: 10px;
   overflow: hidden;
-  position: relative;
-  user-select: none;
-  -webkit-user-select: none; */
 }
 
 .oit-normal .oit-img-view {
-  max-width: 90%;
-  max-height: 80%;
   object-fit: contain;
-
-  /* max-width: 90%;
-  max-height: 80%;
-  object-fit: contain;
-  cursor: grab;
-  will-change: transform;
-  transform-origin: center;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  -webkit-transform-style: preserve-3d;
-  transition: transform 0.3s ease;
-  user-select: none;
-  touch-action: none; */
+  position: relative;
+  z-index: 1;
 }
 
 .oit-img-view:hover {
@@ -283,17 +246,9 @@ body {
 .oit-img-footer {
   display: flex;
   flex-direction: column;
-  /* padding: 10px 20px; */
   background-color: rgba(0, 0, 0, 0.5);
-
-  /* position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  flex-direction: column;
-  z-index: 10; */
+  padding: 5px 5px;
+  z-index: 2;
 }
 
 .oit-img-toolbar {
@@ -303,13 +258,6 @@ body {
   margin: 0 0 10px 0;
   gap: 10px;
   justify-content: center;
-
-  /* display: flex;
-  justify-content: center;
-  padding: 10px 0;
-  list-style: none;
-  position: relative;
-  z-index: 11; */
 }
 
 .oit-img-toolbar li {
@@ -317,7 +265,6 @@ body {
   height: 40px;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.2);
-  margin: 5px 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -325,19 +272,6 @@ body {
   font-size: 18px;
   color: white;
   transition: background-color 0.3s;
-
-  /* width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.2);
-  margin: 0 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  font-size: 18px;
-  color: white;
-  transition: background-color 0.3s; */
 }
 
 .oit-img-toolbar li:hover {
@@ -409,7 +343,6 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  /* 控制滚动条显示 */
   position: relative;
 }
 

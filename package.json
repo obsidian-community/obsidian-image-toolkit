@@ -5,21 +5,21 @@
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "version": "node version-bump.mjs && git add manifest.json versions.json"
   },
   "keywords": [],
   "author": "Xiangru",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.7.5",
-		"@typescript-eslint/eslint-plugin": "8.9.0",
-		"@typescript-eslint/parser": "8.9.0",
-		"builtin-modules": "4.0.0",
-		"esbuild": "0.24.0",
-		"obsidian": "latest",
-		"tslib": "2.8.0",
-		"typescript": "5.6.3"
+    "@typescript-eslint/eslint-plugin": "8.9.0",
+    "@typescript-eslint/parser": "8.9.0",
+    "builtin-modules": "4.0.0",
+    "esbuild": "^0.25.2",
+    "obsidian": "latest",
+    "tslib": "2.8.0",
+    "typescript": "5.6.3"
   },
   "dependencies": {
     "@simonwep/pickr": "^1.9.1",
