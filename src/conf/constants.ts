@@ -32,6 +32,7 @@ export const OIT_CLASS = {
 
   // the place for storing images
   IMG_CONTAINER: 'oit-img-container',
+  IMG_VIEW_FAMILY: 'oit-img-view-family',
   IMG_VIEW: 'oit-img-view',
 
   IMG_TTP: 'oit-img-tip',

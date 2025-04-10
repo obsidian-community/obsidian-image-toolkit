@@ -89,8 +89,7 @@ export abstract class ContainerViewNew {
    * @returns {ImgCto | null} Returns the matched img that can be rendered.
    */
   public initContainer(imageEl: HTMLImageElement): ImgCto | null {
-    this.initContainerDom();
-    const matchedImg = this.getMatchedImg();
+    const matchedImg = this.initContainerDom();
     if (!matchedImg) {
       return null;
     }
@@ -115,9 +114,9 @@ export abstract class ContainerViewNew {
    */
   protected abstract checkImageCanPopup(): boolean;
 
-  protected abstract initContainerDom(): void;
+  protected abstract initContainerDom(): ImgCto;
 
-  protected abstract getMatchedImg(): ImgCto | null;
+  /* protected abstract getMatchedImg(): ImgCto | null; */
 
   protected abstract openContainer(matchedImg: ImgCto): void;
 
@@ -189,7 +188,7 @@ export abstract class ContainerViewNew {
 
 
   //#region ================== Image ========================
-  protected updateImgViewElAndList() {
+  /* protected updateImgViewElAndList() {
     if (!this.imageDomManager.imgContainerEl) {
       return;
     }
@@ -213,7 +212,7 @@ export abstract class ContainerViewNew {
       this.setImgViewDefaultBackground(imgViewEl);
       activeImages.push(new ImgCto(i, curTime, imgViewEl));
     }
-  }
+  } */
 
   public renderImgTip = (activeImg?: ImgCto | null) => {
     if (!activeImg)

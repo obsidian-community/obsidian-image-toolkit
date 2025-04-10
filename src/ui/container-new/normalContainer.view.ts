@@ -30,7 +30,7 @@ export class NormalContainerNew extends ContainerViewNew {
   }
 
   //@Override
-  protected initContainerDom(): void {
+  protected initContainerDom(): ImgCto {
     // oit-normal
     const modeContainerEl = this.imageDomManager.modeContainerEl;
     if (!this.imageDomManager.imgHeaderEl) {
@@ -57,15 +57,15 @@ export class NormalContainerNew extends ContainerViewNew {
       prevBtn.addEventListener('click', (event: MouseEvent) => {
         //this.imgGlobalState.activeImg?.prevImgView();
       });
-      // 2.2. <div class="oit-img-container"> `<img class="oit-img-view" src="" alt="">` </div>
-      // create `oit-img-view` <img> element and set activeImages
-      this.imageHandler.updateImgViewElAndList();
+      // 2.2. oit-img-view-family:
+      this.imageDomManager.imgViewFamilyEl = createDiv({ cls: OIT_CLASS.IMG_VIEW_FAMILY, parent: this.imageDomManager.imgContainerEl });
       // 2.3. oit-next-button:
       const nextBtn = createDiv({ cls: ['oit-nav-button', 'oit-next-button'], parent: this.imageDomManager.imgContainerEl });
       nextBtn.addEventListener('click', (event: MouseEvent) => {
         //this.imgGlobalState.activeImg?.prevImgView();
       });
     }
+    const matchedImg = this.imageHandler.initImgView();
 
     if (!this.imageDomManager.imgTipEl) {
       // 3. oit-img-tip:
@@ -113,15 +113,17 @@ export class NormalContainerNew extends ContainerViewNew {
       // 5.1. oit-img-fullscreen:
       this.imageDomManager.imgPlayerImgViewEl = createEl('img', { cls: OIT_CLASS.IMG_FULLSCREEN, parent: this.imageDomManager.imgPlayerEl });
     }
+
+    return matchedImg;
   }
 
   //@Override
-  protected getMatchedImg(): ImgCto {
+  /* protected getMatchedImg(): ImgCto {
     if (0 === this.imageHandler.activeImages.length) {
       this.updateImgViewElAndList();
     }
     return this.imageHandler.activeImages[0];
-  }
+  } */
 
   //@Override
   protected openContainer(matchedImg: ImgCto): void {
@@ -178,12 +180,12 @@ export class NormalContainerNew extends ContainerViewNew {
   //@Override
   protected addEvents(matchedImg: ImgCto): void {
     // this.imageDomManager.modeContainerEl.addEventListener('click', this.closeContainerEvent);
-    this.imageDomManager.modeContainerEl.addEventListener('mousedown', (event: MouseEvent) => {
+    /* this.imageDomManager.modeContainerEl.addEventListener('mousedown', (event: MouseEvent) => {
       console.log('[D]==>mousedown:', (<HTMLElement>event.target));
       const targetEl = (<HTMLElement>event.target);
       this.mousedownClassName = targetEl?.className;
 
-    });
+    }); */
     this.imageDomManager.modeContainerEl.addEventListener('mouseup', (event: MouseEvent) => {
       console.log('[D]==>mouseup:', (<HTMLElement>event.target).className, 'mousedownClassName=' + this.mousedownClassName);
       const targetEl = (<HTMLElement>event.target);

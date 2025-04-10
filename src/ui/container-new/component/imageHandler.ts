@@ -19,44 +19,67 @@ export abstract class ImageHandlerFactory {
 
 export abstract class ImageHandler {
 
-  // public readonly activeImages: Array<ImgCto> = new Array<ImgCto>();
+  public readonly activeImages: Array<ImgCto> = new Array<ImgCto>();
 
   // key: index ('oit-img-view': data-index), value: ImgCto
-  public readonly activeImageMap: Map<string, ImgCto> = new Map<string, ImgCto>();
+  //public readonly activeImageMap: Map<string, ImgCto> = new Map<string, ImgCto>();
 
   public constructor(protected readonly imageDomManager: ImageDomManager) {
   }
 
   //#region ↓↓↓↓↓ activeImages ↓↓↓↓↓
   public getPopupImgNum(): number {
-    // return this.activeImages.filter(img => img.popup).length;
-    return Array.from(this.activeImageMap.values()).filter(img => img.popup).length;
+    return this.activeImages.filter(img => img.popup).length;
+    //return Array.from(this.activeImageMap.values()).filter(img => img.popup).length;
   }
 
   public isAnyPopupImg(): boolean {
-    // return this.activeImages.some(img => img.popup);
-    return Array.from(this.activeImageMap.values()).some(img => img.popup);
+    return this.activeImages.some(img => img.popup);
+    //return Array.from(this.activeImageMap.values()).some(img => img.popup);
   }
 
   public isNoPopupImg(): boolean {
-    // return this.activeImages.every(img => !img.popup);
-    return Array.from(this.activeImageMap.values()).every(img => !img.popup);
+    return this.activeImages.every(img => !img.popup);
+    //return Array.from(this.activeImageMap.values()).every(img => !img.popup);
   }
   //#endregion ↑↑↑↑↑↑ activeImages ↑↑↑↑↑
 
-  public abstract updateImgViewElAndList(): void;
+  /**
+   * initialize the image view element (oit-img-view) and list (activeImages)
+   * @returns the matched image for preview
+   */
+  public abstract initImgView(): ImgCto;
 
   /**
-     * it may from:
-     * 1. displayImage()
-     * 2. toolbar_refresh
-     * 3. switch GalleryNavbarView
-     *
-     * @param img
-     * @param imgSrc
-     * @param imgAlt
-     * @param imgTitleIndex e.g. <span class="oit-img-title-index">[3/6]</span>
-     */
+   * Create a new image view element with common configuration
+   * @param index The index of the image
+   * @returns The created image element
+   */
+  protected createImgViewElement(index: string): HTMLImageElement {
+    return createEl('img',
+      {
+        cls: OIT_CLASS.IMG_VIEW,
+        parent: this.imageDomManager.imgViewFamilyEl,
+        attr: { tabIndex: 0 }
+      },
+      (el) => {
+        el.hidden = true; // hide 'oit-img-view' for now
+        el.dataset.index = index; // set data-index
+      }
+    );
+  }
+
+  /**
+   * it may from:
+   * 1. displayImage()
+   * 2. toolbar_refresh
+   * 3. switch GalleryNavbarView
+   *
+   * @param img
+   * @param imgSrc
+   * @param imgAlt
+   * @param imgTitleIndex e.g. <span class="oit-img-title-index">[3/6]</span>
+   */
   public refreshImg(img: ImgCto) {
     if (!img) {
       return;
@@ -142,31 +165,26 @@ export class NormalImageHandler extends ImageHandler {
     super(imageDomManager);
   }
 
-  //@Override
-  public updateImgViewElAndList(): void {
-    const imgContainerEl = this.imageDomManager.imgContainerEl;
-    if (!imgContainerEl || this.activeImageMap.size > 0) {
-      return;
+  public initImgView(): ImgCto {
+    if (this.activeImages.length === 1) {
+      return this.activeImages[0];
+    }
+    if (this.activeImages.length > 1) {
+      // remove all children of <oit-img-view-family> {innerHTML} </div>
+      this.imageDomManager.imgViewFamilyEl.replaceChildren();
+      // clear activeImages
+      this.activeImages.length = 0;
     }
     const imgIndex = '0';
-    const curTime = new Date().getTime();
-    const imgViewEl = createEl('img', { cls: OIT_CLASS.IMG_VIEW, parent: imgContainerEl, attr: { tabIndex: 0 } },
-      (el) => {
-        el.hidden = true; // hide 'oit-img-view' for now
-        el.dataset.index = imgIndex; // set data-index
-      }
-    );
-    // this.setImgViewDefaultBackground(imgViewEl);
-    this.activeImageMap.set(imgIndex, new ImgCto(imgIndex, curTime, imgViewEl));
+    const matchedImg = new ImgCto(imgIndex, this.createImgViewElement(imgIndex));
+    this.activeImages.push(matchedImg);
+    return matchedImg;
   }
 
-  //@Override
   protected afterRefreshImg(img: ImgCto): void {
-    // this.imageDomManager.activateModeContainerEl();
     img.activateImgView();
   }
 
-  //@Override
   protected renderImgInfo(name?: string, index?: string): void {
     if (undefined !== name && null !== name) {
       this.imageDomManager.imgTitleEl.setText(name);
@@ -184,41 +202,28 @@ export class PinImageHandler extends ImageHandler {
     super(imageDomManager);
   }
 
-  //@Override
-  public updateImgViewElAndList(): void {
-    const imgContainerEl = this.imageDomManager.imgContainerEl;
-    if (!imgContainerEl) {
-      return;
-    }
-    // remove popup is false item in this.activeImageMap
-    for (const [key, value] of this.activeImageMap.entries()) {
-      if (!value.popup) {
-        this.activeImageMap.delete(key);
+  public initImgView(): ImgCto {
+    const DEFAULT_IMG_VIEW_SIZE = 5;
+    const matchedIndex = this.activeImages.findIndex(img => !img.popup);
+    if (matchedIndex >= 0) {
+      let i = this.activeImages.length - 1;
+      while (i > matchedIndex && this.activeImages.length > DEFAULT_IMG_VIEW_SIZE) {
+        if (!this.activeImages[i].popup) {
+          this.activeImages[i].imgViewEl.remove();
+          this.activeImages.splice(i, 1);
+        }
+        i--;
       }
+      return this.activeImages[matchedIndex];
     }
-
-
-
-    if (this.activeImageMap.size > 0) {
-
-    }
-
-    const imgIndex = '0';
-    const curTime = new Date().getTime();
-    const imgViewEl = createEl('img', { cls: OIT_CLASS.IMG_VIEW, parent: imgContainerEl, attr: { tabIndex: 0 } },
-      (el) => {
-        el.hidden = true; // hide 'oit-img-view' for now
-        el.dataset.index = imgIndex; // set data-index
-      }
-    );
-    // this.setImgViewDefaultBackground(imgViewEl);
-    this.activeImageMap.set(imgIndex, new ImgCto(imgIndex, curTime, imgViewEl));
+    const imgIndex = this.activeImages.length.toString();
+    const matchedImg = new ImgCto(imgIndex, this.createImgViewElement(imgIndex));
+    this.activeImages.push(matchedImg);
+    return matchedImg;
   }
 
-  //@Override
   protected afterRefreshImg(img: ImgCto): void {
-    // this.activeImages.forEach(img => img.imgViewEl.removeClass('active'));
-    Array.from(this.activeImageMap.values()).forEach(img => img.imgViewEl.removeClass('active'));
+    this.activeImages.forEach(img => img.imgViewEl.removeClass('active'));
     img.activateImgView();
   }
 

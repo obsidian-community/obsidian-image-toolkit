@@ -67,7 +67,8 @@ export class ImageDomManager {
   imgIndexEl: HTMLDivElement; // 'oit-img-index'
   imgTitleEl: HTMLDivElement; // 'oit-img-title'
 
-  imgContainerEl: HTMLDivElement; // 'oit-img-container': including <img class='oit-img-view' src='' alt=''>
+  imgContainerEl: HTMLDivElement; // 'oit-img-container'
+  imgViewFamilyEl: HTMLDivElement; // 'oit-img-view-family': including <img class='oit-img-view' src='' alt=''>
 
   imgTipEl: HTMLDivElement; // 'oit-img-tip': show the zoom ratio
   imgTipTimeout?: NodeJS.Timeout | null; // timer: control the display time of 'oit-img-tip'
@@ -139,9 +140,8 @@ export class ImgCto {
     borderColor: ''
   }
 
-  constructor(index: string, mtime: number, imgViewEl: HTMLImageElement) {
+  constructor(index: string, imgViewEl: HTMLImageElement) {
     this.index = index;
-    this.mtime = mtime;
     this.imgViewEl = imgViewEl;
   }
 
@@ -203,7 +203,6 @@ export class ImgCto {
   }
 
   public activateImgView() {
-    console.log('[D]activateImgView ==>');
     //this.imgViewEl.tabIndex = 0;
     this.imgViewEl.focus();
     this.imgViewEl.addClass('active');
