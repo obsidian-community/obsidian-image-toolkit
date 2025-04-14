@@ -83,13 +83,24 @@ export class ImageUtil {
       }
       ratio = 1;
     }
-    const left = targetImgInfo.imgX + offsetSize.offsetX * (1 - ratio);
-    const top = targetImgInfo.imgY + offsetSize.offsetY * (1 - ratio);
+    // const left = targetImgInfo.imgX + offsetSize.offsetX * (1 - ratio);
+    // const top = targetImgInfo.imgY + offsetSize.offsetY * (1 - ratio);
+
+    // 计算鼠标相对于图片中心的位置
+    const centerOffsetX = offsetSize.offsetX - targetImgInfo.curWidth / 2;
+    const centerOffsetY = offsetSize.offsetY - targetImgInfo.curHeight / 2;
+    // 计算缩放比例
+    const scaleX = newWidth / targetImgInfo.curWidth;
+    const scaleY = newHeight / targetImgInfo.curHeight;
+    // 计算新的位置，保持鼠标指向的点不变
+    const newX = targetImgInfo.imgX - centerOffsetX * (scaleX - 1);
+    const newY = targetImgInfo.imgY - centerOffsetY * (scaleY - 1);
+
     // cache image info: curWidth, curHeight, left, top
     targetImgInfo.curWidth = newWidth;
     targetImgInfo.curHeight = newHeight;
-    targetImgInfo.imgX = left;
-    targetImgInfo.imgY = top;
+    targetImgInfo.imgX = newX;
+    targetImgInfo.imgY = newY;
     // return { newWidth, left, top };
     return targetImgInfo;
   }

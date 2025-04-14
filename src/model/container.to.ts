@@ -1,5 +1,5 @@
 /**
- * ts class object: image operating state
+ * ts class object: image operating state (Global State)
  */
 export class ImgOprStateCto {
   // whether the image is being dragged
@@ -88,11 +88,11 @@ export class ImageDomManager {
     this.modeContainerEl.focus();
   } */
 
-  public displayModeContainerEl() {
+  public showModeContainer() {
     this.modeContainerEl.addClass('active');
   }
 
-  public closeModeContainerEl() {
+  public closeModeContainer() {
     this.modeContainerEl.removeClass('active');
   }
 
@@ -160,28 +160,30 @@ export class ImgCto {
    * @param alt
    * @returns
    */
-  public displayImgView() {
+  public showImgView() {
     const imgViewEl = this.imgViewEl;
     if (!imgViewEl) {
       return;
     }
-    this.mtime = new Date().getTime();
+    this.mtime = new Date().getTime(); // show time
     imgViewEl.src = this.src;
     imgViewEl.alt = this.alt;
     imgViewEl.hidden = false; // !img.src && !img.alt;
   }
 
   /**
-  * Hide `imgViewEl`
+  * Close&Hide `imgViewEl` (oit-img-view)
   *
   * @param imgViewEl
   * @returns
   */
   public closeImgView() {
     const imgViewEl = this.imgViewEl;
-    imgViewEl.src = '';
-    imgViewEl.alt = '';
-    imgViewEl.hidden = true;
+    if (imgViewEl) {
+      imgViewEl.src = '';
+      imgViewEl.alt = '';
+      imgViewEl.hidden = true;
+    }
 
     //this.mtime = 0;
     this.popup = false;
@@ -191,15 +193,24 @@ export class ImgCto {
     this.curHeight = 0;
     this.realWidth = 0;
     this.realHeight = 0;
+    this.lastImgX = 0;
+    this.lastImgY = 0;
     this.imgX = 0;
     this.imgY = 0;
-    //this.imgStartX = 0;
-    //this.imgStartY = 0;
     this.rotate = 0;
     this.invertColor = false;
     this.scaleX = false;
     this.scaleY = false;
     this.fullScreen = false;
+    this.defaultImgStyle = {
+      transform: 'none',
+      filter: 'none',
+      mixBlendMode: 'normal',
+
+      borderWidth: '',
+      borderStyle: '',
+      borderColor: ''
+    }
   }
 
   public activateImgView() {
@@ -217,11 +228,21 @@ export class ImgCto {
   }
 
   public transformImgView() {
-    this.imgViewEl.style.transform = `translate(${this.imgX}px, ${this.imgY}px) scale(${this.scaleX ? -1 : 1}, ${this.scaleY ? -1 : 1}) rotate(${this.rotate}deg)`;
+    if (this.imgViewEl) {
+      this.imgViewEl.style.transform = `translate(${this.imgX}px, ${this.imgY}px) scale(${this.scaleX ? -1 : 1}, ${this.scaleY ? -1 : 1}) rotate(${this.rotate}deg)`;
+    }
   }
 
   public setWidthImgView() {
-    this.imgViewEl.width = this.curWidth;
+    if (this.imgViewEl) {
+      this.imgViewEl.width = this.curWidth;
+    }
+  }
+
+  public renderImgView() {
+    this.showImgView(); // show the image
+    this.setWidthImgView(); // set the size of the image, e.g. zoom in/out
+    this.transformImgView(); // set the position of the image, e.g. move, rotate
   }
 
 }

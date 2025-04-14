@@ -76,18 +76,12 @@ export abstract class ImageHandler {
    * 3. switch GalleryNavbarView
    *
    * @param img
-   * @param imgSrc
-   * @param imgAlt
-   * @param imgTitleIndex e.g. <span class="oit-img-title-index">[3/6]</span>
    */
   public refreshImg(img: ImgCto) {
-    if (!img) {
-      return;
-    }
     this.renderImgInfo(img.alt, img.index.toString());
 
     if (!img.src) {
-      return
+      return;
     }
 
     img.resetRefreshImgInterval();
@@ -98,7 +92,7 @@ export abstract class ImageHandler {
         img.resetRefreshImgInterval();
 
         this.calculateImgZoomSize(realImg, img);
-        this.renderImgView(img);
+        img.renderImgView();
         //this.renderImgTip(img);
 
         //img.imgViewEl.style.transform = img.defaultImgStyle.transform;
@@ -113,16 +107,6 @@ export abstract class ImageHandler {
   protected abstract afterRefreshImg(img: ImgCto): void;
 
   protected renderImgInfo(name?: string, index?: string): void {
-  }
-
-  protected renderImgView = (img: ImgCto) => {
-    const imgViewEl = img.imgViewEl;
-    if (!imgViewEl) {
-      return;
-    }
-    img.displayImgView();
-    img.setWidthImgView(); // set the size of the image, e.g. zoom in/out
-    img.transformImgView(); // set the position of the image, e.g. move, rotate
   }
 
   protected calculateImgZoomSize(realImg: HTMLImageElement, imgCto: ImgCto): ImgCto {

@@ -33,16 +33,19 @@ body {
 }
 
 .oit-pin {
+  display: none;
   position: fixed;
   font-size: 0;
   line-height: 0;
   z-index: var(--layer-oit-pin);
-  display: none;
+}
+
+.oit-pin.active {
+  display: flex;
 }
 
 /*#region == 1. oit-normal == */
 .oit-normal {
-  /* display: flex; */
   display: none;
   position: fixed;
   top: 0;

@@ -103,7 +103,7 @@ export class PinContainerNew extends ContainerViewNew {
     }
     matchedImg.renderZIndex();
     // display 'oit-pin'
-    this.imageDomManager.displayModeContainerEl();
+    this.imageDomManager.showModeContainer();
   }
 
   /**
@@ -126,7 +126,7 @@ export class PinContainerNew extends ContainerViewNew {
     // this.renderImgView(activeImg.imgViewEl, '', '');
 
     if (this.isNoPopupImg()) {
-      this.imageDomManager.closeModeContainerEl(); // hide 'oit-pin'
+      this.imageDomManager.closeModeContainer(); // hide 'oit-pin'
       this.imgGlobalState.activeImgZIndex = 0;
       this.activeImages.forEach(img => img.zIndex = 0);
     }
@@ -139,7 +139,7 @@ export class PinContainerNew extends ContainerViewNew {
   }
 
   //@Override
-  protected setActiveImgZIndex = (activeImg: ImgCto) => {
+  public setActiveImgZIndex = (activeImg: ImgCto) => {
     let isUpdate: boolean = false;
     for (const img of this.activeImages) {
       if (activeImg.index !== img.index && activeImg.zIndex <= img.zIndex) {

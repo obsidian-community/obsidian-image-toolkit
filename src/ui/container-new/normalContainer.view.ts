@@ -129,7 +129,7 @@ export class NormalContainerNew extends ContainerViewNew {
   protected openContainer(matchedImg: ImgCto): void {
     matchedImg.popup = true;
     // display 'oit-normal'
-    this.imageDomManager.displayModeContainerEl();
+    this.imageDomManager.showModeContainer();
   }
 
   /**
@@ -148,23 +148,23 @@ export class NormalContainerNew extends ContainerViewNew {
       // 1. Normal - click event 'oit-normal'
       const target = <HTMLElement>event.target;
       console.log('[D]closeContainer-normal-target:', "'" + target?.classList.value + "'");
-      if (!target || !(target.hasClass(OIT_CLASS.MODE_CONTAINER_NORMAL) || target.hasClass(OIT_CLASS.IMG_CONTAINER))) {
+      if (!target || !(target.hasClass(OIT_CLASS.MODE_CONTAINER_NORMAL) || target.hasClass(OIT_CLASS.IMG_VIEW_FAMILY))) {
         return;
       }
     }
     if (this.closePlayerImgEvent() || !activeImg) {
       return;
     }
-    if (this.imageDomManager.modeContainerEl) {
-      this.imgGlobalState.activeImg = null;
-      activeImg.closeImgView();
-      this.imageDomManager.closeModeContainerEl(); // hide 'oit-normal'
-      this.renderImgInfo('', '');
-      this.removeEvents(activeImg);
-    }
-    if (this.plugin.settings.galleryNavbarToggle && this.galleryNavbarView) {
+
+    this.imgGlobalState.activeImg = null;
+    activeImg.closeImgView();
+    this.imageDomManager.closeModeContainer(); // hide 'oit-normal'
+    this.renderImgInfo('', '');
+    this.eventHandler.destroy(activeImg);
+
+    /* if (this.plugin.settings.galleryNavbarToggle && this.galleryNavbarView) {
       this.galleryNavbarView.closeGalleryNavbar();
-    }
+    } */
   }
 
   //@Override
@@ -180,12 +180,12 @@ export class NormalContainerNew extends ContainerViewNew {
   //@Override
   protected addEvents(matchedImg: ImgCto): void {
     // this.imageDomManager.modeContainerEl.addEventListener('click', this.closeContainerEvent);
-    /* this.imageDomManager.modeContainerEl.addEventListener('mousedown', (event: MouseEvent) => {
+    this.imageDomManager.modeContainerEl.addEventListener('mousedown', (event: MouseEvent) => {
       console.log('[D]==>mousedown:', (<HTMLElement>event.target));
       const targetEl = (<HTMLElement>event.target);
       this.mousedownClassName = targetEl?.className;
 
-    }); */
+    });
     this.imageDomManager.modeContainerEl.addEventListener('mouseup', (event: MouseEvent) => {
       console.log('[D]==>mouseup:', (<HTMLElement>event.target).className, 'mousedownClassName=' + this.mousedownClassName);
       const targetEl = (<HTMLElement>event.target);

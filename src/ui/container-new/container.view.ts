@@ -4,21 +4,23 @@ import { MenuView } from "../menuView";
 import { IMG_DEFAULT_BACKGROUND_COLOR, IMG_FULL_SCREEN_MODE, OIT_CLASS, ViewModeEnum } from "src/conf/constants";
 import { ImageUtil } from "src/util/image.util";
 import { OffsetSizeIto } from "src/model/common.to";
-import { ImageHandler, ImageHandlerFactory } from "./component/imageHandler";
+import { ImageHandler, ImageHandlerFactory } from "./handler/imageHandler";
+import { EventHandlerFactory, IEventHandler } from "./handler/eventHandler";
 
 
 export abstract class ContainerViewNew {
 
   protected readonly imageHandler: ImageHandler;
+  protected readonly eventHandler: IEventHandler;
 
-  protected readonly imageDomManager: ImageDomManager;
+  public readonly imageDomManager: ImageDomManager;
 
   protected readonly lastClickedImg: LastClickedImgCto = new LastClickedImgCto();
 
   protected readonly imgGlobalState: ImgOprStateCto = new ImgOprStateCto();
 
   // Right click menu
-  protected readonly menuView: MenuView = new MenuView(this)
+  public readonly menuView: MenuView = new MenuView(this)
 
   protected constructor(
     protected readonly viewMode: ViewModeEnum,
@@ -28,6 +30,7 @@ export abstract class ContainerViewNew {
   ) {
     this.imageDomManager = new ImageDomManager(ownerDoc, modeContainerEl);
     this.imageHandler = ImageHandlerFactory.createImageHandler(viewMode, this.imageDomManager);
+    this.eventHandler = EventHandlerFactory.createEventHandler(viewMode, this.imageDomManager, this, this.imgGlobalState);
   }
 
   public getOwnerDoc(): Document {
@@ -78,7 +81,7 @@ export abstract class ContainerViewNew {
     }
     this.imgGlobalState.activeImg = matchedImg;
     this.openContainer(matchedImg);
-    this.renderGalleryNavbar();
+    // this.renderGalleryNavbar();
     this.imageHandler.refreshImg(matchedImg);
   }
 
@@ -99,7 +102,8 @@ export abstract class ContainerViewNew {
     this.initDefaultData(matchedImg, window.getComputedStyle(imageEl));
     this.addBorderForLastClickedImg(imageEl);
 
-    this.addEvents(matchedImg);
+    //this.addEvents(matchedImg);
+    this.eventHandler.init(matchedImg);
 
     matchedImg.alt = imageEl.alt;
     matchedImg.src = imageEl.src;
@@ -127,7 +131,7 @@ export abstract class ContainerViewNew {
     }
   }
 
-  protected abstract closeContainer(event: MouseEvent | null, activeImg: ImgCto | null): void;
+  public abstract closeContainer(event: MouseEvent | null, activeImg: ImgCto | null): void;
 
   public unload() {
     this.lastClickedImg.restoreBorderForLastClickedImg();
@@ -262,7 +266,7 @@ export abstract class ContainerViewNew {
     }
   }
 
-  protected setActiveImgZIndex = (activeImg: ImgCto) => {
+  public setActiveImgZIndex = (activeImg: ImgCto) => {
   }
   //#endregion
 
@@ -646,7 +650,7 @@ export abstract class ContainerViewNew {
     } */
   }
 
-  private setClickTimer = (activeImg?: ImgCto | null) => {
+  public setClickTimer = (activeImg?: ImgCto | null) => {
     ++this.imgGlobalState.clickCount;
     if (this.imgGlobalState.clickTimer) {
       clearTimeout(this.imgGlobalState.clickTimer);
@@ -665,12 +669,12 @@ export abstract class ContainerViewNew {
     }, 200);
   }
 
-  private resetClickTimer() {
+  public resetClickTimer() {
     this.imgGlobalState.clickTimer = null;
     this.imgGlobalState.clickCount = 0;
   }
 
-  private getAndUpdateActiveImg = (event: MouseEvent | KeyboardEvent): ImgCto | null => {
+  public getAndUpdateActiveImg = (event: MouseEvent | KeyboardEvent): ImgCto | null => {
     const targetEl = (<HTMLImageElement>event.target);
     let index: string | undefined;
     if (!targetEl?.hasClass(OIT_CLASS.IMG_VIEW) || !(index = targetEl.dataset.index)) {
