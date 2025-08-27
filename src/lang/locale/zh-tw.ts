@@ -2,9 +2,6 @@
 
 export default {
 
-  // settings
-  IMAGE_TOOLKIT_SETTINGS_TITLE: "image toolkit 設定",
-
   // toolbar icon title
   ZOOM_IN: "放大",
   ZOOM_OUT: "縮小",

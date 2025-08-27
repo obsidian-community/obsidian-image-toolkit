@@ -1,4 +1,4 @@
-import {App, PluginSettingTab, Setting} from 'obsidian';
+import {App, PluginSettingTab, sanitizeHTMLToDom, setIcon, Setting} from 'obsidian';
 import {t} from 'src/lang/helpers';
 import type ImageToolkitPlugin from "src/main";
 import {
@@ -16,7 +16,6 @@ import {
   TOOLBAR_CONF,
   ViewMode
 } from './constants';
-import Pickr from '@simonwep/pickr';
 import {SettingsIto} from "../model/settings.to";
 
 
@@ -67,8 +66,6 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
     let {containerEl} = this;
     containerEl.empty();
 
-    containerEl.createEl('h2', {text: t("IMAGE_TOOLKIT_SETTINGS_TITLE")});
-
     // Common Settings:
     this.displayCommonSettings(containerEl);
 
@@ -79,7 +76,7 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
     this.displayPinModeSettings(containerEl);
 
     //region >>> VIEW_DETAILS_SETTINGS
-    containerEl.createEl('h3', {text: t("VIEW_DETAILS_SETTINGS")});
+    new Setting(containerEl).setName(t("VIEW_DETAILS_SETTINGS")).setHeading();
 
     let imgMoveSpeedScaleText: HTMLDivElement;
     new Setting(containerEl)
@@ -124,11 +121,30 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
         });
       });
 
-    this.createPickrSetting(containerEl, 'IMG_VIEW_BACKGROUND_COLOR_NAME', IMG_DEFAULT_BACKGROUND_COLOR);
+    new Setting(containerEl)
+        .setName(t("IMG_VIEW_BACKGROUND_COLOR_NAME"))
+        .addColorPicker(picker => {
+           picker
+               .setValue(this.plugin.settings.imgViewBackgroundColor || DEFAULT_SETTINGS.imgViewBackgroundColor)
+
+               .onChange(async(value) => {
+                   this.plugin.settings.imgViewBackgroundColor = value;
+                    await this.plugin.saveSettings();
+               });
+        })
+        .addExtraButton(button => {
+            button.setIcon('rotate-ccw')
+                .setTooltip(t('RESET'))
+                .onClick(async () => {
+                   this.plugin.settings.imgViewBackgroundColor = DEFAULT_SETTINGS.imgViewBackgroundColor;
+                   await this.plugin.saveSettings();
+                    this.display();
+                });
+        });
     //endregion
 
     //region >>> IMAGE_BORDER_SETTINGS
-    containerEl.createEl('h3', {text: t("IMAGE_BORDER_SETTINGS")});
+    new Setting(containerEl).setName(t("IMAGE_BORDER_SETTINGS")).setHeading();
 
     new Setting(containerEl)
       .setName(t("IMAGE_BORDER_TOGGLE_NAME"))
@@ -184,10 +200,10 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
     //endregion
 
     //region >>> GALLERY_NAVBAR_SETTINGS
-    let galleryNavbarDefaultColorSetting: Setting, galleryNavbarHoverColorSetting: Setting,
-      galleryImgBorderToggleSetting: Setting, galleryImgBorderActiveColorSetting: Setting;
+    //let galleryNavbarDefaultColorSetting: Setting, galleryNavbarHoverColorSetting: Setting,
+    // galleryImgBorderToggleSetting: Setting, galleryImgBorderActiveColorSetting: Setting;
 
-    containerEl.createEl('h3', {text: t("GALLERY_NAVBAR_SETTINGS")});
+    new Setting(containerEl).setName(t("GALLERY_NAVBAR_SETTINGS")).setHeading();
 
     new Setting(containerEl)
       .setName(t("GALLERY_NAVBAR_TOGGLE_NAME"))
@@ -201,10 +217,47 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
-    galleryNavbarDefaultColorSetting = this.createPickrSetting(containerEl, 'GALLERY_NAVBAR_DEFAULT_COLOR_NAME', GALLERY_NAVBAR_DEFAULT_COLOR);
-    galleryNavbarHoverColorSetting = this.createPickrSetting(containerEl, 'GALLERY_NAVBAR_HOVER_COLOR_NAME', GALLERY_NAVBAR_HOVER_COLOR);
+      const galleryNavbarDefaultColorSetting = new Setting(containerEl)
+          .setName(t("GALLERY_NAVBAR_DEFAULT_COLOR_NAME"))
+          .addColorPicker(picker => {
+              picker
+                  .setValue(this.plugin.settings.galleryNavbarDefaultColor || DEFAULT_SETTINGS.galleryNavbarDefaultColor)
+                  .onChange(async (value) => {
+                      this.plugin.settings.galleryNavbarDefaultColor = value;
+                      await this.plugin.saveSettings();
+                  });
+          })
+          .addExtraButton(button => {
+              button.setIcon('rotate-ccw')
+                  .setTooltip(t('RESET'))
+                  .onClick(async () => {
+                      this.plugin.settings.galleryNavbarDefaultColor = DEFAULT_SETTINGS.galleryNavbarDefaultColor;
+                      await this.plugin.saveSettings();
+                      this.display();
+                  });
+          });
 
-    galleryImgBorderToggleSetting = new Setting(containerEl)
+    const galleryNavbarHoverColorSetting = new Setting(containerEl)
+        .setName(t("GALLERY_NAVBAR_HOVER_COLOR_NAME"))
+        .addColorPicker(picker => {
+           picker
+               .setValue(this.plugin.settings.galleryNavbarHoverColor || DEFAULT_SETTINGS.galleryNavbarHoverColor)
+               .onChange(async (value) => {
+                  this.plugin.settings.galleryNavbarHoverColor = value;
+                  await this.plugin.saveSettings();
+               });
+        })
+        .addExtraButton(button => {
+            button.setIcon('rotate-ccw')
+                .setTooltip(t('RESET'))
+                .onClick(async () => {
+                    this.plugin.settings.galleryNavbarHoverColor = DEFAULT_SETTINGS.galleryNavbarHoverColor;
+                    await this.plugin.saveSettings();
+                    this.display();
+                });
+        });
+
+    const galleryImgBorderToggleSetting = new Setting(containerEl)
       .setName(t("GALLERY_IMG_BORDER_TOGGLE_NAME"))
       .setDesc(t("GALLERY_IMG_BORDER_TOGGLE_DESC"))
       .addToggle(toggle => toggle
@@ -213,15 +266,32 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
           this.plugin.settings.galleryImgBorderActive = value;
           await this.plugin.saveSettings();
         }));
-    galleryImgBorderActiveColorSetting = this.createPickrSetting(containerEl, 'GALLERY_IMG_BORDER_ACTIVE_COLOR_NAME', GALLERY_IMG_BORDER_ACTIVE_COLOR);
+
+    const galleryImgBorderActiveColorSetting = new Setting(containerEl)
+        .setName(t("GALLERY_IMG_BORDER_ACTIVE_COLOR_NAME"))
+        .addColorPicker(picker => {
+           picker.setValue(this.plugin.settings.galleryImgBorderActiveColor || DEFAULT_SETTINGS.galleryImgBorderActiveColor)
+               .onChange(async (value) => {
+                   this.plugin.settings.galleryImgBorderActiveColor = value;
+                   await this.plugin.saveSettings();
+               });
+        })
+        .addExtraButton(button => {
+            button.setIcon('rotate-ccw')
+                .setTooltip(t('RESET'))
+                .onClick(async () => {
+                    this.plugin.settings.imgViewBackgroundColor = DEFAULT_SETTINGS.galleryImgBorderActiveColor;
+                    await this.plugin.saveSettings();
+                    this.display();
+                });
+        });
 
     this.switchSettingsDisabled(!this.plugin.settings.galleryNavbarToggle, galleryNavbarDefaultColorSetting,
       galleryNavbarHoverColorSetting, galleryImgBorderToggleSetting, galleryImgBorderActiveColorSetting);
     //endregion
 
     //region >>> HOTKEYS_SETTINGS
-    containerEl.createEl('h3', {text: t("HOTKEY_SETTINGS")});
-    containerEl.createEl('p', {text: t("HOTKEY_SETTINGS_DESC")});
+    new Setting(containerEl).setName(t("HOTKEY_SETTINGS")).setDesc(t("HOTKEY_SETTINGS_DESC")).setHeading();
 
     if (this.plugin.settings.moveTheImageHotkey === this.plugin.settings.switchTheImageHotkey) {
       this.plugin.settings.moveTheImageHotkey = MOVE_THE_IMAGE.DEFAULT_HOTKEY;
@@ -238,12 +308,10 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         });
       }).then((setting) => {
-        setting.controlEl.appendChild(createDiv('setting-editor-extra-setting-button hotkeys-settings-plus', (el) => {
-          el.innerHTML = "+";
-        }));
-        setting.controlEl.appendChild(createDiv('setting-editor-extra-setting-button', (el) => {
-          el.innerHTML = MOVE_THE_IMAGE.SVG;
-        }));
+          setting.addExtraButton(button => {
+             button.setIcon('plus').setDisabled(true)
+          });
+        setting.controlEl.appendChild(sanitizeHTMLToDom(MOVE_THE_IMAGE.SVG));
       });
 
     if (this.plugin.settings.switchTheImageHotkey === this.plugin.settings.moveTheImageHotkey) {
@@ -261,12 +329,11 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         });
       }).then((setting) => {
-        setting.controlEl.appendChild(createDiv('setting-editor-extra-setting-button hotkeys-settings-plus', (el) => {
-          el.innerHTML = "+";
-        }));
-        setting.controlEl.appendChild(createDiv('setting-editor-extra-setting-button', (el) => {
-          el.innerHTML = SWITCH_THE_IMAGE.SVG;
-        }));
+          setting.addExtraButton(button => {
+              button.setIcon('plus').setDisabled(true);
+          });
+          setting.controlEl.appendChild(sanitizeHTMLToDom(SWITCH_THE_IMAGE.SVG));
+
       });
 
     if (switchTheImageSetting) {
@@ -306,7 +373,6 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
   }
 
   private displayCommonSettings(containerEl: HTMLElement) {
-    containerEl.createEl('h3', {text: t('COMMON_SETTINGS')});
 
     new Setting(containerEl)
       .setName(t("VIEW_MODE_NAME"))
@@ -323,7 +389,7 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
   }
 
   private displayViewTriggerSettings(containerEl: HTMLElement) {
-    containerEl.createEl('h3', {text: t("VIEW_TRIGGER_SETTINGS")});
+    new Setting(containerEl).setName(t("VIEW_TRIGGER_SETTINGS")).setHeading();
 
     new Setting(containerEl)
       .setName(t("VIEW_IMAGE_IN_EDITOR_NAME"))
@@ -375,7 +441,7 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
     let pinMaximumSetting: Setting,
       pinCoverSetting: Setting;
 
-    containerEl.createEl('h3', {text: t("PIN_MODE_SETTINGS")});
+    new Setting(containerEl).setName(t("PIN_MODE_SETTINGS")).setHeading();
 
     /*new Setting(containerEl)
       .setName(t("PIN_MODE_NAME"))
@@ -427,91 +493,6 @@ export class ImageToolkitSettingTab extends PluginSettingTab {
     for (const setting of settings) {
       setting?.setDisabled(disabled)
     }
-  }
-
-  createPickrSetting(containerEl: HTMLElement, name: string, defaultColor: string): Setting {
-    let pickrDefault: string;
-    if ('GALLERY_NAVBAR_DEFAULT_COLOR_NAME' === name) {
-      pickrDefault = this.plugin.settings.galleryNavbarDefaultColor;
-    } else if ('GALLERY_NAVBAR_HOVER_COLOR_NAME' === name) {
-      pickrDefault = this.plugin.settings.galleryNavbarHoverColor;
-    } else if ('GALLERY_IMG_BORDER_ACTIVE_COLOR_NAME' === name) {
-      pickrDefault = this.plugin.settings.galleryImgBorderActiveColor;
-    } else if ('IMG_VIEW_BACKGROUND_COLOR_NAME' === name) {
-      pickrDefault = this.plugin.settings.imgViewBackgroundColor;
-    } else {
-      pickrDefault = defaultColor;
-    }
-
-    let pickr: Pickr;
-    return new Setting(containerEl)
-      // @ts-ignore
-      .setName(t(name))
-      .then((setting) => {
-        pickr = Pickr.create({
-          el: setting.controlEl.createDiv({cls: "picker"}),
-          theme: 'nano',
-          position: "left-middle",
-          lockOpacity: false, // If true, the user won't be able to adjust any opacity.
-          default: pickrDefault, // Default color
-          swatches: [], // Optional color swatches
-          components: {
-            preview: true,
-            hue: true,
-            opacity: true,
-            interaction: {
-              hex: true,
-              rgba: true,
-              hsla: false,
-              input: true,
-              cancel: true,
-              save: true,
-            },
-          }
-        })
-          .on('show', (color: Pickr.HSVaColor, instance: Pickr) => { // Pickr got opened
-            if (!this.plugin.settings.galleryNavbarToggle) pickr?.hide();
-            const {result} = (pickr.getRoot() as any).interaction;
-            requestAnimationFrame(() =>
-              requestAnimationFrame(() => result.select())
-            );
-          })
-          .on('save', (color: Pickr.HSVaColor, instance: Pickr) => { // User clicked the save / clear button
-            if (!color) return;
-            instance.hide();
-            const savedColor = color.toHEXA().toString();
-            instance.addSwatch(savedColor);
-            this.setAndSavePickrSetting(name, savedColor);
-          })
-          .on('cancel', (instance: Pickr) => { // User clicked the cancel button
-            instance.hide();
-          })
-      })
-      .addExtraButton((btn) => {
-        btn.setIcon("reset")
-          .onClick(() => {
-            pickr.setColor(defaultColor);
-            this.setAndSavePickrSetting(name, defaultColor);
-          })
-          .setTooltip('restore default color');
-      });
-  }
-
-  setAndSavePickrSetting(name: string, savedColor: string): void {
-    if ('GALLERY_NAVBAR_DEFAULT_COLOR_NAME' === name) {
-      this.plugin.settings.galleryNavbarDefaultColor = savedColor;
-    } else if ('GALLERY_NAVBAR_HOVER_COLOR_NAME' === name) {
-      this.plugin.settings.galleryNavbarHoverColor = savedColor;
-    } else if ('GALLERY_IMG_BORDER_ACTIVE_COLOR_NAME' === name) {
-      this.plugin.settings.galleryImgBorderActiveColor = savedColor;
-    } else if ('IMG_VIEW_BACKGROUND_COLOR_NAME' === name) {
-      this.plugin.settings.imgViewBackgroundColor = savedColor;
-      // this.plugin.containerView?.setImgViewDefaultBackgroundForImgList();
-      this.plugin.getAllContainerViews().forEach(container => {
-        container.setImgViewDefaultBackgroundForImgList();
-      });
-    }
-    this.plugin.saveSettings();
   }
 
   getDropdownOptions(): Record<string, string> {

@@ -1,6 +1,6 @@
 import { addIcon, Plugin, WorkspaceLeaf } from 'obsidian';
 import { DEFAULT_SETTINGS, ImageToolkitSettingTab } from './conf/settings'
-import { DEFAULT_VIEW_MODE, ICONS, VIEW_IMG_SELECTOR, ViewMode } from './conf/constants'
+import {DEFAULT_VIEW_MODE, ICONS, MOVE_THE_IMAGE, SWITCH_THE_IMAGE, VIEW_IMG_SELECTOR, ViewMode} from './conf/constants'
 import { NormalContainerView } from './ui/container/normalContainer.view';
 import { PinContainerView } from './ui/container/pinContainer.view';
 import { ContainerView } from "./ui/container/container.view";

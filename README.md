@@ -1,8 +1,8 @@
-<h1 align="center">Obsidian Image Toolkit</h1>
+<h1 align="center">Image Toolkit</h1>
 
 <p align="center">
-    <img alt="Release version" src="https://img.shields.io/github/v/release/sissilab/obsidian-image-toolkit?style=for-the-badge">
-    <img alt="Download count" src="https://img.shields.io/github/downloads/sissilab/obsidian-image-toolkit/total?style=for-the-badge">
+    <img alt="Release version" src="https://img.shields.io/github/v/release/obsidian-community/obsidian-image-toolkit?style=for-the-badge">
+    <img alt="Download count" src="https://img.shields.io/github/downloads/obsidian-community/obsidian-image-toolkit/total?style=for-the-badge">
 </p>
 
 <p align="center">
@@ -91,4 +91,4 @@ When you turn on 'Pin an image' on the settings page, it's in **Pin Mode**.
 
 ## Contact
 
-If you've got any kind of feedback or questions, feel free to reach out via [GitHub issues](https://github.com/sissilab/obsidian-image-toolkit/issues).
+If you've got any kind of feedback or questions, feel free to reach out via [GitHub issues](https://github.com/obsidian-community/obsidian-image-toolkit/issues).

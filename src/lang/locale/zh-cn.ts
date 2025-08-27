@@ -2,17 +2,12 @@
 
 export default {
 
-  // settings
-  IMAGE_TOOLKIT_SETTINGS_TITLE: "Image Toolkit 设置",
-
-  // >>>Common Settings:
-  COMMON_SETTINGS: '通用设置：',
   VIEW_MODE_NAME: '选择查看模式',
   VIEW_MODE_NORMAL: '🖼 普通',
   VIEW_MODE_PIN: '📌 贴图',
 
   // >>> 预览触发配置：
-  VIEW_TRIGGER_SETTINGS: '预览触发配置：',
+  VIEW_TRIGGER_SETTINGS: '预览触发配置',
   VIEW_IMAGE_GLOBAL_NAME: '支持全局预览图片',
   VIEW_IMAGE_GLOBAL_DESC: '开启后，在任何地方点击图片都可以弹出预览界面，可对图片进行缩放、旋转、拖动、和反色等。',
   VIEW_IMAGE_IN_EDITOR_NAME: '支持在编辑区域预览图片',
@@ -26,7 +21,7 @@ export default {
   VIEW_IMAGE_OTHER_DESC: '除上述支持范围外，还支持一些其他区域，如Modal用户界面组件。',
 
   // >>> PIN_MODE_SETTINGS
-  PIN_MODE_SETTINGS: "贴图模式设置：",
+  PIN_MODE_SETTINGS: "贴图模式设置",
   PIN_MODE_NAME: "📌 将所点击的图片贴到屏幕上",
   PIN_MODE_DESC: "你可以将当前所点击的图片贴到屏幕上，并且可以通过右击图片选择更多操作（按 Esc 关闭已贴图片的展示）",
   PIN_MAXIMUM_NAME: "最大贴图数量",
@@ -35,7 +30,7 @@ export default {
   PIN_MAXIMUM_NOTICE: "超过最大Pin图设置（非覆盖模式）",
 
   // >>>查看细节设置：
-  VIEW_DETAILS_SETTINGS: '查看细节设置：',
+  VIEW_DETAILS_SETTINGS: '查看细节设置',
   IMAGE_MOVE_SPEED_NAME: '图片移动速度设置',
   IMAGE_MOVE_SPEED_DESC: '当使用键盘（上、下、左、右）移动图片时，可对图片移动速度进行设置。',
   IMAGE_TIP_TOGGLE_NAME: "展示缩放比例提示",
@@ -48,7 +43,7 @@ export default {
   IMG_VIEW_BACKGROUND_COLOR_NAME: "设置预览图片的背景色（仅对透明背景的图片生效）",
 
   // >>>图片边框设置：
-  IMAGE_BORDER_SETTINGS: '图片边框设置：',
+  IMAGE_BORDER_SETTINGS: '图片边框设置',
   IMAGE_BORDER_TOGGLE_NAME: "展示被点击图片的边框",
   IMAGE_BORDER_TOGGLE_DESC: "当离开图片预览和关闭弹出层后，突出展示被点击图片的边框。",
   IMAGE_BORDER_WIDTH_NAME: "设置图片边框宽度",
@@ -93,7 +88,7 @@ export default {
   YELLOW: '黄色',
 
   // >>>Gallery Navbar Settings:
-  GALLERY_NAVBAR_SETTINGS: '图片导航设置 (体验版):',
+  GALLERY_NAVBAR_SETTINGS: '图片导航设置 (体验版)',
   GALLERY_NAVBAR_TOGGLE_NAME: "展示图片导航",
   GALLERY_NAVBAR_TOGGLE_DESC: "当前文档的所有图片会展示在弹出层的底部，可随意切换展示不同图片。",
   GALLERY_NAVBAR_DEFAULT_COLOR_NAME: "设置图片导航底栏背景色（默认展示）",
@@ -103,7 +98,7 @@ export default {
   GALLERY_IMG_BORDER_ACTIVE_COLOR_NAME: '设置被选中图片的边框色',
 
   // >>>HOTKEYS_SETTINGS:
-  HOTKEY_SETTINGS: "快捷键设置:",
+  HOTKEY_SETTINGS: "快捷键设置",
   HOTKEY_SETTINGS_DESC: "📢  你无法为'移动图片'和'切换图片'设置相同的快捷键。（不支持贴图模式）",
   MOVE_THE_IMAGE_NAME: "为移动图片设置快捷键",
   MOVE_THE_IMAGE_DESC: "你可以利用快捷键来移动弹出层上的图片。",
