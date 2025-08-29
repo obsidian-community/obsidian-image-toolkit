@@ -1,4 +1,4 @@
-<h1 align="center">Obsidian Image Toolkit</h1>
+<h1 align="center">Image Toolkit</h1>
 
 <p align="center">
     <img alt="Release version" src="https://img.shields.io/github/v/release/sissilab/obsidian-image-toolkit?style=for-the-badge">
@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-    <span>Obsidian Image Toolkit 是一款 Obsidian 的第三方插件，它提供了一些有关图片查看操作的小功能。</span>
+    <span>Image Toolkit 是一款 Obsidian 的第三方插件，它提供了一些有关图片查看操作的小功能。</span>
     <br/>
     <a href="/README_cn.md">简体中文</a>
     ·

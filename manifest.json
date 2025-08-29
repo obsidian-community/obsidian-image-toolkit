@@ -3,7 +3,7 @@
 	"name": "Image Toolkit",
 	"version": "1.4.3",
 	"minAppVersion": "1.8.7",
-	"description": "This plugin provides some image viewing toolkit.",
+	"description": "Click images to preview with zoom, move, rotate, flip, invert, and copy.",
 	"author": "Xiangru",
 	"authorUrl": "https://github.com/sissilab",
 	"isDesktopOnly": true
