@@ -1,4 +1,4 @@
-name: Build plugin
+name: Build plugin (old)
 
 on:
   workflow_dispatch:
@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ref/tags/${{ inputs.version }}
+          ref: refs/tags/${{ inputs.version }}
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
